@@ -2,6 +2,7 @@
 import recipes from '../data/recipes.json';
 import RecipeCard from '../components/RecipeCard.astro';
 import BrewMateAuth from '../components/BrewMateAuth.jsx';
+import SavedRecipes from '../components/SavedRecipes.jsx';
 ---
 
 <html lang="en">
@@ -64,6 +65,9 @@ import BrewMateAuth from '../components/BrewMateAuth.jsx';
       </div>
     </main>
 
+    <!-- Saved Recipes (Rendered client-side if user is signed in) -->
+    <SavedRecipes client:only="react" />
+
     <!-- Clean Footer -->
     <footer class="text-center text-xs text-gray-500 py-6">
       BrewMate © 2025
@@ -97,7 +101,7 @@ import BrewMateAuth from '../components/BrewMateAuth.jsx';
       window.askBrewMate = async function () {
         const input = document.getElementById('gptPrompt');
         const output = document.getElementById('gptResponse');
-        const prompt = "Give me a fruity summer beer under 3% ABV";
+        const prompt = input.value.trim();
 
         if (!prompt) {
           output.innerText = "Please enter a question.";
