@@ -1,16 +1,145 @@
 ---
-
+import recipes from '../data/recipes.json';
+import RecipeCard from '../components/RecipeCard.astro';
+import BrewMateAuth from '../components/BrewMateAuth.jsx';
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>BrewMate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/global.css" />
+  </head>
+  <body class="bg-neutral-950 text-white min-h-screen">
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-50 bg-neutral-950 py-6 shadow-lg">
+      <h1 class="text-center text-4xl font-bold">BrewMate Recipes</h1>
+      <p class="text-center text-blue-400 underline mt-2">
+        <a href="#recipes">Explore Recipes</a>
+      </p>
+    </header>
+
+    <!-- Firebase Auth Controls -->
+    <div class="text-center mt-6">
+      <BrewMateAuth client:only="react" />
+    </div>
+
+    <!-- GPT Prompt UI -->
+    <h2 class="text-center text-white text-xl font-semibold mt-12 mb-4">Ask BrewMate AI</h2>
+    <div class="flex flex-col sm:flex-row gap-4 items-center justify-center px-4">
+      <input
+        id="gptPrompt"
+        type="text"
+        placeholder="e.g. What should I brew if I want something fruity with low ABV?"
+        class="w-full sm:w-[400px] px-4 py-2 rounded-md text-black"
+      />
+      <button
+        onclick="askBrewMate()"
+        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+      >
+        Ask BrewMate AI
+      </button>
+    </div>
+
+    <!-- GPT Response Output -->
+    <div id="gptResponse" class="text-white text-center mt-6 max-w-2xl mx-auto"></div>
+
+    <!-- Save Recipe Button -->
+    <div id="saveRecipeContainer" class="text-center mt-4 hidden">
+      <button
+        onclick="handleSaveRecipe(window.latestRecipe)"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+      >
+        💾 Save This Recipe
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <main id="recipes" class="max-w-7xl mx-auto px-6 py-12">
+      <div class="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {recipes.map((recipe) => (
+          <RecipeCard {...recipe} />
+        ))}
+      </div>
+    </main>
+
+    <!-- Clean Footer -->
+    <footer class="text-center text-xs text-gray-500 py-6">
+      BrewMate © 2025
+    </footer>
+
+    <!-- GPT Prompt Script -->
+    <script type="module">
+      import { auth, saveUserRecipe } from "/src/firebase.js";
+
+      window.handleSaveRecipe = async function (recipe) {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Please sign in to save recipes.");
+          return;
+        }
+
+        if (!recipe || !recipe.name) {
+          alert("No recipe to save.");
+          return;
+        }
+
+        try {
+          await saveUserRecipe(user, recipe);
+          alert("✅ Recipe saved to your BrewMate account!");
+        } catch (err) {
+          console.error("Save failed:", err);
+          alert("❌ Error saving recipe.");
+        }
+      };
+
+      window.askBrewMate = async function () {
+        const input = document.getElementById('gptPrompt');
+        const output = document.getElementById('gptResponse');
+        const prompt = "Give me a fruity summer beer under 3% ABV";
+
+        if (!prompt) {
+          output.innerText = "Please enter a question.";
+          return;
+        }
+
+        output.innerText = "Thinking... 🍺";
+
+        try {
+          const res = await fetch('/api/ask-gpt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+          });
+
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (e) {
+            throw new Error("Invalid response from server.");
+          }
+
+          if (res.ok && data.answer) {
+            output.innerText = data.answer;
+
+            window.latestRecipe = {
+              name: "AI-Generated Brew",
+              style: "Experimental",
+              abv: "unknown",
+              instructions: data.answer,
+              createdFromPrompt: prompt,
+            };
+
+            document.getElementById("saveRecipeContainer").classList.remove("hidden");
+          } else {
+            output.innerText = data.error || "Something went wrong.";
+          }
+        } catch (err) {
+          console.error("GPT error:", err);
+          output.innerText = "Failed to reach BrewMate AI.";
+        }
+      };
+    </script>
+  </body>
 </html>

@@ -1,0 +1,14 @@
+{
+  "name": "Dark Roast Stout",
+  "abv": 5.5,
+  "srm": 40,
+  "og": 1.060,
+  "fg": 1.015,
+  "ingredients": [
+    "Roasted Barley",
+    "Chocolate Malt",
+    "East Kent Goldings"
+  ],
+  "instructions": "Mash at 154°F for 60 min. Boil for 60 min. Ferment at 68°F.",
+  "image": "/images/dark-roast.jpg"
+}

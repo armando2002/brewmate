@@ -1,0 +1,30 @@
+{
+  "tailwindCSS.includeLanguages": {
+    "astro": "html",
+    "typescript": "javascript"
+  },
+  "tailwindCSS.emmetCompletions": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "*.astro": "astro"
+  },
+  "css.validate": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.enable": true,
+  "prettier.tailwindConfig": "./tailwind.config.js",
+  "prettier.plugins": ["prettier-plugin-tailwindcss"]
+}
