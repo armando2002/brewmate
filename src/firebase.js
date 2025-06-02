@@ -16,17 +16,16 @@ import {
   query,
 } from "firebase/firestore";
 
-// Firebase config using environment variables
+// ✅ Use VITE_ prefix to ensure Vercel builds can access these
 const firebaseConfig = {
-  apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
-  authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase app and services
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
@@ -36,17 +35,15 @@ export const signIn = () => signInWithPopup(auth, provider);
 export const logout = () => signOut(auth);
 export const onAuthChange = (cb) => onAuthStateChanged(auth, cb);
 
-// ✅ Save a user recipe under /users/{uid}/recipes/
 export async function saveUserRecipe(user, recipe) {
   const userRef = doc(db, "users", user.uid);
-  const recipeRef = doc(collection(userRef, "recipes")); // auto-generated doc ID
+  const recipeRef = doc(collection(userRef, "recipes"));
   await setDoc(recipeRef, {
     ...recipe,
     savedAt: new Date().toISOString(),
   });
 }
 
-// ✅ (Optional) Fetch all saved recipes for a user
 export async function getUserRecipes(uid) {
   const recipesRef = collection(doc(db, "users", uid), "recipes");
   const q = query(recipesRef);
