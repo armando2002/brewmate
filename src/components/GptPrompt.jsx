@@ -21,6 +21,9 @@ export default function GptPrompt() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
+
+      if (!res.ok) throw new Error(`API Error ${res.status}`);
+
       const data = await res.json();
       if (data.recipe) {
         setResponse(data.recipe);
@@ -37,7 +40,8 @@ export default function GptPrompt() {
         og: '',
         fg: '',
         ingredients: [],
-        instructions: 'Failed to generate a recipe.',
+        instructions:
+          '⚠️ Failed to generate a recipe. Please check your internet connection and try again.',
       });
     } finally {
       setLoading(false);
@@ -53,7 +57,9 @@ export default function GptPrompt() {
         .filter(Boolean);
     }
     if (Array.isArray(response.ingredients)) {
-      return response.ingredients.map((i) => (typeof i === 'string' ? i.trim() : '')).filter(Boolean);
+      return response.ingredients
+        .map((i) => (typeof i === 'string' ? i.trim() : ''))
+        .filter(Boolean);
     }
     return [];
   };
@@ -85,11 +91,27 @@ export default function GptPrompt() {
         </button>
       </form>
 
+      {loading && (
+        <div className="flex justify-center mb-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent"></div>
+        </div>
+      )}
+
       {response && (
         <div
-          className="bg-neutral-900 p-6 sm:p-8 rounded-2xl shadow-xl border border-neutral-700 animate-fade-in"
+          className={`p-6 sm:p-8 rounded-2xl shadow-xl animate-fade-in ${
+            response.name === 'Error'
+              ? 'bg-red-900 border border-red-500'
+              : 'bg-neutral-900 border border-neutral-700'
+          }`}
         >
-          <h3 className="text-2xl font-bold text-amber-400 mb-1">{response.name}</h3>
+          <h3
+            className={`text-2xl font-bold mb-1 ${
+              response.name === 'Error' ? 'text-red-300' : 'text-amber-400'
+            }`}
+          >
+            {response.name}
+          </h3>
           <p className="text-xs text-gray-400 mb-1">SRM {response.srm}</p>
           <p className="text-sm text-gray-300 mb-2">{response.style}</p>
           <p className="text-sm text-gray-300 mb-4">
@@ -100,7 +122,9 @@ export default function GptPrompt() {
 
           <ul className="list-disc list-inside space-y-1 text-sm mb-6">
             {getIngredientList().map((item, idx) => (
-              <li key={idx} className="text-gray-200">{item}</li>
+              <li key={idx} className="text-gray-200">
+                {item}
+              </li>
             ))}
           </ul>
 
@@ -108,7 +132,7 @@ export default function GptPrompt() {
             {response.instructions}
           </p>
 
-          <SaveRecipeButton recipe={response} />
+          {response.name !== 'Error' && <SaveRecipeButton recipe={response} />}
         </div>
       )}
     </section>
