@@ -36,7 +36,7 @@ import SavedRecipes from '../components/SavedRecipes.jsx';
         class="w-full sm:w-[400px] px-4 py-2 rounded-md text-black"
       />
       <button
-        onclick="askBrewMate()"
+        id="askBrewMateBtn"
         class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
       >
         Ask BrewMate AI
@@ -49,10 +49,10 @@ import SavedRecipes from '../components/SavedRecipes.jsx';
     <!-- Save Recipe Button -->
     <div id="saveRecipeContainer" class="text-center mt-4 hidden">
       <button
-        onclick="handleSaveRecipe(window.latestRecipe)"
+        id="saveRecipeBtn"
         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
       >
-        💾 Save This Recipe
+        📂 Save This Recipe
       </button>
     </div>
 
@@ -77,28 +77,7 @@ import SavedRecipes from '../components/SavedRecipes.jsx';
     <script type="module">
       import { auth, saveUserRecipe } from "/src/firebase.js";
 
-      window.handleSaveRecipe = async function (recipe) {
-        const user = auth.currentUser;
-        if (!user) {
-          alert("Please sign in to save recipes.");
-          return;
-        }
-
-        if (!recipe || !recipe.name) {
-          alert("No recipe to save.");
-          return;
-        }
-
-        try {
-          await saveUserRecipe(user, recipe);
-          alert("✅ Recipe saved to your BrewMate account!");
-        } catch (err) {
-          console.error("Save failed:", err);
-          alert("❌ Error saving recipe.");
-        }
-      };
-
-      window.askBrewMate = async function () {
+      async function askBrewMate() {
         const input = document.getElementById('gptPrompt');
         const output = document.getElementById('gptResponse');
         const prompt = input.value.trim();
@@ -117,12 +96,7 @@ import SavedRecipes from '../components/SavedRecipes.jsx';
             body: JSON.stringify({ prompt })
           });
 
-          let data = {};
-          try {
-            data = await res.json();
-          } catch (e) {
-            throw new Error("Invalid response from server.");
-          }
+          const data = await res.json();
 
           if (res.ok && data.answer) {
             output.innerText = data.answer;
@@ -143,7 +117,31 @@ import SavedRecipes from '../components/SavedRecipes.jsx';
           console.error("GPT error:", err);
           output.innerText = "Failed to reach BrewMate AI.";
         }
-      };
+      }
+
+      async function handleSaveRecipe(recipe) {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Please sign in to save recipes.");
+          return;
+        }
+
+        if (!recipe || !recipe.name) {
+          alert("No recipe to save.");
+          return;
+        }
+
+        try {
+          await saveUserRecipe(user, recipe);
+          alert("✅ Recipe saved to your BrewMate account!");
+        } catch (err) {
+          console.error("Save failed:", err);
+          alert("❌ Error saving recipe.");
+        }
+      }
+
+      document.getElementById('askBrewMateBtn').addEventListener('click', askBrewMate);
+      document.getElementById('saveRecipeBtn').addEventListener('click', () => handleSaveRecipe(window.latestRecipe));
     </script>
   </body>
 </html>
