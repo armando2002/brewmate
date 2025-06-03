@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
+// Trigger redeploy test
+
 function App() {
   const navigate = useNavigate();
 
