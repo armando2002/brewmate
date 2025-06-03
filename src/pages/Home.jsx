@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import recipes from '../data/recipes.json';
 import RecipeCard from '../components/RecipeCard';
 import SaveRecipeButton from '../components/SaveRecipeButton';
-import SavedRecipes from '../components/SavedRecipes'; // 👈 new import
+import SavedRecipes from '../components/SavedRecipes';
+import GptPrompt from '../components/GptPrompt'; // 👈 NEW: GPT prompt component
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -53,7 +54,10 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ✅ Display saved recipes below */}
+        {/* 🔮 GPT Prompt Section */}
+        <GptPrompt />
+
+        {/* 💾 Display user-saved recipes */}
         <SavedRecipes />
       </main>
     </div>
