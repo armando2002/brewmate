@@ -1,31 +1,34 @@
 // api/generate.js
 export default async function handler(req, res) {
-  // ✅ CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Or restrict to your Vercel frontend domain
+  // Always set these first
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // ✅ Handle preflight
+  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { prompt } = req.body;
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Missing OpenAI API key' });
-  }
-
-  if (!prompt || typeof prompt !== 'string') {
-    return res.status(400).json({ error: 'Missing or invalid prompt' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   try {
+    const { prompt } = req.body;
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
+      res.status(500).json({ error: 'Missing OpenAI API key' });
+      return;
+    }
+
+    if (!prompt || typeof prompt !== 'string') {
+      res.status(400).json({ error: 'Missing or invalid prompt' });
+      return;
+    }
+
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -56,8 +59,8 @@ export default async function handler(req, res) {
 
     const json = await openaiRes.json();
     const rawText = json.choices?.[0]?.message?.content;
-    const recipe = JSON.parse(rawText);
 
+    const recipe = JSON.parse(rawText);
     res.status(200).json({ recipe });
   } catch (err) {
     console.error('🧨 API error:', err);
