@@ -15,12 +15,12 @@ export default function GptPrompt() {
     setResponse(null);
 
     try {
-      const res = await fetch('/api/generate', {
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBase}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-
       const data = await res.json();
       if (data.recipe) {
         setResponse(data.recipe);
@@ -28,7 +28,7 @@ export default function GptPrompt() {
         throw new Error('Invalid response format');
       }
     } catch (err) {
-      console.error('❌ Fetch error:', err);
+      console.error('Fetch error:', err);
       setResponse({
         name: 'Error',
         srm: '',
@@ -47,54 +47,66 @@ export default function GptPrompt() {
   const getIngredientList = () => {
     if (!response?.ingredients) return [];
     if (typeof response.ingredients === 'string') {
-      return response.ingredients.split(/\r?\n/).map((i) => i.trim()).filter(Boolean);
+      return response.ingredients
+        .split(/\r?\n/)
+        .map((i) => i.trim())
+        .filter(Boolean);
     }
-    return Array.isArray(response.ingredients)
-      ? response.ingredients.map((i) => (typeof i === 'string' ? i.trim() : '')).filter(Boolean)
-      : [];
+    if (Array.isArray(response.ingredients)) {
+      return response.ingredients.map((i) => (typeof i === 'string' ? i.trim() : '')).filter(Boolean);
+    }
+    return [];
   };
 
   return (
-    <section className="mt-20 max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit} className="bg-neutral-900 p-6 rounded-xl shadow-xl space-y-4">
-        <h2 className="text-2xl font-bold">🔮 Brew with AI</h2>
-        <p className="text-sm text-gray-400">Describe your beer idea below and BrewMate will generate a custom recipe.</p>
+    <section className="mt-20 mb-24 max-w-3xl mx-auto px-4">
+      <h2 className="text-2xl font-bold text-center mb-2">🍺 Brew with AI</h2>
+      <p className="text-center text-sm text-gray-400 mb-8">
+        Describe your beer idea below and BrewMate will craft a custom recipe for you.
+      </p>
 
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row gap-3 items-stretch mb-10"
+      >
         <input
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g. 2% ABV crisp lager with citrus notes"
-          className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-md text-white placeholder-gray-500"
+          placeholder="e.g. 2% ABV crisp lager with citrus"
+          className="flex-1 px-5 py-3 rounded-xl bg-neutral-800 text-white border border-neutral-700 focus:ring-2 focus:ring-amber-500 focus:outline-none placeholder-gray-500"
         />
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold"
           disabled={loading}
+          className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Generating...' : 'Generate Recipe'}
+          {loading ? 'Generating…' : 'Generate'}
         </button>
       </form>
 
       {response && (
-        <div className="mt-10 bg-neutral-900 p-6 rounded-2xl shadow-lg">
-          <h3 className="text-2xl font-bold mb-1">{response.name}</h3>
-          <p className="text-gray-400 text-sm mb-1">SRM {response.srm} • {response.style}</p>
-          <p className="font-medium mb-4">ABV: {response.abv} • OG: {response.og} • FG: {response.fg}</p>
+        <div
+          className="bg-neutral-900 p-6 sm:p-8 rounded-2xl shadow-xl border border-neutral-700 animate-fade-in"
+        >
+          <h3 className="text-2xl font-bold text-amber-400 mb-1">{response.name}</h3>
+          <p className="text-xs text-gray-400 mb-1">SRM {response.srm}</p>
+          <p className="text-sm text-gray-300 mb-2">{response.style}</p>
+          <p className="text-sm text-gray-300 mb-4">
+            <strong>ABV:</strong> {response.abv} &nbsp;•&nbsp;
+            <strong>OG:</strong> {response.og} &nbsp;•&nbsp;
+            <strong>FG:</strong> {response.fg}
+          </p>
 
-          <div className="mb-4">
-            <h4 className="font-semibold text-lg mb-2">Ingredients</h4>
-            <ul className="list-disc list-inside text-sm text-gray-200 space-y-1">
-              {getIngredientList().map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
-          </div>
+          <ul className="list-disc list-inside space-y-1 text-sm mb-6">
+            {getIngredientList().map((item, idx) => (
+              <li key={idx} className="text-gray-200">{item}</li>
+            ))}
+          </ul>
 
-          <div className="mb-4">
-            <h4 className="font-semibold text-lg mb-2">Instructions</h4>
-            <p className="text-sm text-gray-300">{response.instructions}</p>
-          </div>
+          <p className="text-sm text-gray-300 whitespace-pre-line mb-6">
+            {response.instructions}
+          </p>
 
           <SaveRecipeButton recipe={response} />
         </div>
