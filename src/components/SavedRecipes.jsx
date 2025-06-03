@@ -1,58 +1,49 @@
-import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
-import RecipeCard from "./RecipeCard.astro";
+// src/components/SavedRecipes.jsx
+import { useEffect, useState } from 'react';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import RecipeCard from './RecipeCard';
 
 export default function SavedRecipes() {
   const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useEffect(() => {
-    const loadRecipes = async () => {
-      const user = auth.currentUser;
-      if (!user) {
-        setRecipes([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const colRef = collection(db, "users", user.uid, "recipes");
-        const snapshot = await getDocs(colRef);
-        const userRecipes = snapshot.docs.map(doc => doc.data());
-        setRecipes(userRecipes);
-      } catch (err) {
-        console.error("Failed to load saved recipes:", err);
-      } finally {
-        setLoading(false);
-      }
+    const fetchRecipes = async () => {
+      if (!user) return;
+      const db = getFirestore();
+      const userRecipesRef = collection(db, 'users', user.uid, 'recipes');
+      const snapshot = await getDocs(userRecipesRef);
+      const data = snapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter(
+          (r) =>
+            r.name &&
+            r.ingredients &&
+            r.instructions &&
+            r.name !== 'AI-Generated Brew'
+        );
+      setRecipes(data);
     };
 
-    loadRecipes();
-  }, []);
+    fetchRecipes();
+  }, [user]);
 
-  if (loading) {
-    return (
-      <div className="text-center text-gray-400 my-8">Loading saved recipes...</div>
-    );
-  }
-
-  if (recipes.length === 0) {
-    return (
-      <div className="text-center text-gray-400 my-8">
-        No saved recipes yet. Ask BrewMate AI and click “Save This Recipe.”
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-12">
-      <h2 className="text-2xl font-bold text-center mb-6">Your Saved Recipes</h2>
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {recipes.map((recipe, index) => (
-          <RecipeCard key={index} {...recipe} />
-        ))}
-      </div>
+    <section className="mt-12">
+      <h2 className="text-2xl font-bold mb-4">Saved Recipes</h2>
+      {recipes.length === 0 ? (
+        <p className="text-gray-400">No saved recipes found.</p>
+      ) : (
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {recipes.map((recipe) => (
+            <RecipeCard key={recipe.id} {...recipe} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -1,20 +1,20 @@
 // src/firebase.js
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
+  onAuthStateChanged
+} from 'firebase/auth';
 import {
   getFirestore,
   doc,
   collection,
   setDoc,
   getDocs,
-  query,
-} from "firebase/firestore";
+  query
+} from 'firebase/firestore';
 
 // ✅ Dual prefix support: LOCAL = PUBLIC_, VERCEL = VITE_
 const firebaseConfig = {
@@ -29,15 +29,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
 const provider = new GoogleAuthProvider();
+
 export const signIn = () => signInWithPopup(auth, provider);
 export const logout = () => signOut(auth);
 export const onAuthChange = (cb) => onAuthStateChanged(auth, cb);
 
+// Firestore helpers
 export async function saveUserRecipe(user, recipe) {
-  const userRef = doc(db, "users", user.uid);
-  const recipeRef = doc(collection(userRef, "recipes"));
+  const userRef = doc(db, 'users', user.uid);
+  const recipeRef = doc(collection(userRef, 'recipes'));
   await setDoc(recipeRef, {
     ...recipe,
     savedAt: new Date().toISOString(),
@@ -45,7 +46,7 @@ export async function saveUserRecipe(user, recipe) {
 }
 
 export async function getUserRecipes(uid) {
-  const recipesRef = collection(doc(db, "users", uid), "recipes");
+  const recipesRef = collection(doc(db, 'users', uid), 'recipes');
   const q = query(recipesRef);
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

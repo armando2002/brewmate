@@ -2,10 +2,10 @@
   {
     "name": "Dark Roast Stout",
     "style": "Stout",
-    "abv": 5.5,
-    "og": 1.060,
-    "fg": 1.015,
-    "srm": 40,
+    "abv": "5.5%",
+    "og": "1.06",
+    "fg": "1.015",
+    "srm": "40",
     "ingredients": [
       "8 lb Pale Malt 2-Row",
       "1 lb Roasted Barley",
@@ -18,10 +18,10 @@
   {
     "name": "Low Tide Blonde",
     "style": "Blonde Ale",
-    "abv": 4.2,
-    "og": 1.045,
-    "fg": 1.010,
-    "srm": 5,
+    "abv": "4.2%",
+    "og": "1.045",
+    "fg": "1.01",
+    "srm": "5",
     "ingredients": [
       "6 lb Pale Malt 2-Row",
       "1 lb Wheat Malt",
@@ -32,15 +32,15 @@
       "Yeast nutrient @ 10 min (optional)",
       "1 pkg US-05 yeast"
     ],
-    "instructions": "Heat 7 gallons of water to 150°F. Mash grains at 150°F for 60 minutes. Sparge to collect ~6.5 gallons. Boil for 60 minutes. Add 1 oz Cascade at 60 min, 0.5 oz Cascade at 15 min. Add Whirlfloc and yeast nutrient at 10 min if desired. Chill to 66–68°F. Pitch 1 pkg US-05 yeast. Ferment at 66°F for 10–14 days. Carbonate to 2.4 volumes CO₂."
+    "instructions": "Heat 7 gallons of water to 150°F. Mash grains at 150°F for 60 minutes. Sparge to collect wort. Boil for 60 minutes. Add 1 oz Cascade at 60 min, 0.5 oz at 15 min. Add Whirlfloc and yeast nutrient at 10 min if desired. Chill to 66–68°F. Pitch 1 pkg US-05 yeast. Ferment 10 days. Carbonate to 2.4 volumes CO₂."
   },
   {
     "name": "Sunrise Wheat",
     "style": "Wheat Beer",
-    "abv": 4.5,
-    "og": 1.048,
-    "fg": 1.012,
-    "srm": 6,
+    "abv": "4.5%",
+    "og": "1.048",
+    "fg": "1.012",
+    "srm": "6",
     "ingredients": [
       "4 lb Wheat Malt",
       "2 lb Pilsner Malt",
@@ -50,25 +50,5 @@
       "1 pkg Wyeast 3068 or WB-06 yeast"
     ],
     "instructions": "Heat 6.8 gallons of water to 152°F. Mash for 60 minutes. Sparge to collect wort. Boil for 60 minutes. Add 1 oz Saaz hops at 60 min and 0.5 oz at 15 min. Optionally add orange peel and coriander at 5 min. Chill to 67°F. Pitch 1 pkg WB-06 or Wyeast 3068. Ferment at 67°F for 10 days. Carbonate to 2.5 volumes CO₂."
-  },
-  {
-    "name": "NA Golden Ale",
-    "style": "Golden Ale",
-    "abv": 0.5,
-    "og": 1.028,
-    "fg": 1.024,
-    "srm": 2.9,
-    "ingredients": [
-      "4 lb 0.2 oz Carapils/Carafaom (Weyermann)",
-      "15.9 oz Oats, Flaked",
-      "15.9 oz Pale Ale Malt 2-Row (Briess)",
-      "15.9 oz Wheat Malt (White Rahr)",
-      "0.61 oz Cascade hops (7.0%) @ 40 min",
-      "0.61 oz Cascade hops (7.0%) @ 20 min",
-      "5.205 mL Lactic Acid 80%",
-      "1.157 tsp Gelatin (after fermentation)",
-      "1 pkg Fermentis LA-01 yeast"
-    ],
-    "instructions": "Heat 7.2 gallons of water to 149°F. Add grains and hold mash at 149°F for 60 minutes. Mash out and sparge if needed. Bring to a boil. Add 0.61 oz Cascade hops at 40 minutes and again at 20 minutes. Boil for 60 minutes total. Chill to 68°F. Pitch 1 pkg LA-01 yeast. Ferment at 68°F for 10 days. Fine with gelatin post-fermentation. Carbonate to 2.4 volumes of CO₂. Final gravity should reach 1.024. Yields 5.5 gallons."
   }
 ]
