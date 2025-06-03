@@ -71,6 +71,12 @@ export default function GptPrompt() {
         Describe your beer idea below and BrewMate will craft a custom recipe for you.
       </p>
 
+      {loading && (
+        <div className="flex justify-center my-8">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent"></div>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         className="flex flex-col sm:flex-row gap-3 items-stretch mb-10"
@@ -90,12 +96,6 @@ export default function GptPrompt() {
           {loading ? 'Generating…' : 'Generate'}
         </button>
       </form>
-
-      {loading && (
-        <div className="flex justify-center mb-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent"></div>
-        </div>
-      )}
 
       {response && (
         <div
