@@ -9,27 +9,19 @@ export default function GptPrompt() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('▶️ Form submitted:', prompt);
-
-    if (!prompt.trim()) {
-      console.warn('🚫 Prompt is empty, not sending request.');
-      return;
-    }
+    if (!prompt.trim()) return;
 
     setLoading(true);
     setResponse(null);
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-      const res = await fetch(`${apiBase}/api/generate`, {
+      const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
 
       const data = await res.json();
-      console.log('✅ API response:', data);
-
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -54,36 +46,30 @@ export default function GptPrompt() {
 
   const getIngredientList = () => {
     if (!response?.ingredients) return [];
-
     if (typeof response.ingredients === 'string') {
-      return response.ingredients
-        .split(/\r?\n/)
-        .map((i) => i.trim())
-        .filter(Boolean);
+      return response.ingredients.split(/\r?\n/).map((i) => i.trim()).filter(Boolean);
     }
-
-    if (Array.isArray(response.ingredients)) {
-      return response.ingredients
-        .map((i) => (typeof i === 'string' ? i.trim() : ''))
-        .filter(Boolean);
-    }
-
-    return [];
+    return Array.isArray(response.ingredients)
+      ? response.ingredients.map((i) => (typeof i === 'string' ? i.trim() : '')).filter(Boolean)
+      : [];
   };
 
   return (
-    <section className="mt-12 mb-16 max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit} className="mb-4">
+    <section className="mt-20 max-w-3xl mx-auto">
+      <form onSubmit={handleSubmit} className="bg-neutral-900 p-6 rounded-xl shadow-xl space-y-4">
+        <h2 className="text-2xl font-bold">🔮 Brew with AI</h2>
+        <p className="text-sm text-gray-400">Describe your beer idea below and BrewMate will generate a custom recipe.</p>
+
         <input
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g. A 2% ABV session saison"
-          className="w-full p-3 rounded-lg bg-neutral-800 text-white border border-neutral-600"
+          placeholder="e.g. 2% ABV crisp lager with citrus notes"
+          className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-md text-white placeholder-gray-500"
         />
         <button
           type="submit"
-          className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold"
           disabled={loading}
         >
           {loading ? 'Generating...' : 'Generate Recipe'}
@@ -91,21 +77,24 @@ export default function GptPrompt() {
       </form>
 
       {response && (
-        <div className="bg-neutral-900 p-6 rounded-2xl shadow-lg">
-          <h3 className="text-xl font-bold mb-2">{response.name}</h3>
-          <p className="text-sm text-gray-400 mb-1">SRM {response.srm}</p>
-          <p className="mb-2">{response.style}</p>
-          <p className="mb-4 font-semibold">
-            ABV: {response.abv} • OG: {response.og} • FG: {response.fg}
-          </p>
+        <div className="mt-10 bg-neutral-900 p-6 rounded-2xl shadow-lg">
+          <h3 className="text-2xl font-bold mb-1">{response.name}</h3>
+          <p className="text-gray-400 text-sm mb-1">SRM {response.srm} • {response.style}</p>
+          <p className="font-medium mb-4">ABV: {response.abv} • OG: {response.og} • FG: {response.fg}</p>
 
-          <ul className="list-disc list-inside mb-4">
-            {getIngredientList().map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ul>
+          <div className="mb-4">
+            <h4 className="font-semibold text-lg mb-2">Ingredients</h4>
+            <ul className="list-disc list-inside text-sm text-gray-200 space-y-1">
+              {getIngredientList().map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </div>
 
-          <p className="text-sm text-gray-300 mb-4">{response.instructions}</p>
+          <div className="mb-4">
+            <h4 className="font-semibold text-lg mb-2">Instructions</h4>
+            <p className="text-sm text-gray-300">{response.instructions}</p>
+          </div>
 
           <SaveRecipeButton recipe={response} />
         </div>
