@@ -12,7 +12,7 @@ import RecipeCard from './RecipeCard';
 import defaultRecipes from '../data/recipes.json';
 
 export default function SavedRecipes() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // Track uninitialized state
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [useDefaults, setUseDefaults] = useState(false);
@@ -20,13 +20,15 @@ export default function SavedRecipes() {
   // Detect login state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+      setUser(firebaseUser || null);
     });
     return () => unsubscribe();
   }, []);
 
   // Load recipes from Firestore or fallback
   useEffect(() => {
+    if (user === undefined) return; // Wait until auth is initialized
+
     const fetchRecipes = async () => {
       if (!user) {
         console.log('🧪 No user logged in -- using default recipes');
