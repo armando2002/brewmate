@@ -1,4 +1,3 @@
-// src/components/SavedRecipes.jsx
 import { useEffect, useState } from 'react';
 import {
   collection,
@@ -8,45 +7,53 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import RecipeCard from './RecipeCard';
-import defaultRecipes from '../data/recipes.json';
 
-export default function SavedRecipes({ user = null }) {
+export default function SavedRecipes({ user }) {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [useDefaults, setUseDefaults] = useState(false);
 
   useEffect(() => {
-    if (user === undefined) return; // Wait for user to resolve
-
     const fetchRecipes = async () => {
       if (!user) {
-        console.log('🧪 No user logged in — using default recipes');
-        setUseDefaults(true);
-        setSavedRecipes(defaultRecipes);
-        setLoading(false);
+        console.log('🧪 No user logged in — fetching fallback recipes...');
+        try {
+          const res = await fetch('/recipes.json');
+          const data = await res.json();
+          setSavedRecipes(data);
+        } catch (err) {
+          console.error('🔥 Failed to load fallback recipes:', err);
+          setSavedRecipes([]);
+        } finally {
+          setUseDefaults(true);
+          setLoading(false);
+        }
         return;
       }
 
       try {
         const ref = collection(db, 'users', user.uid, 'recipes');
         const snapshot = await getDocs(ref);
-
         if (snapshot.empty) {
-          console.log('🧪 Firestore empty — using default recipes');
+          console.log('🧪 Firestore empty — fallback to public recipes');
+          const res = await fetch('/recipes.json');
+          const data = await res.json();
+          setSavedRecipes(data);
           setUseDefaults(true);
-          setSavedRecipes(defaultRecipes);
         } else {
           const docs = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
           }));
-          setUseDefaults(false);
           setSavedRecipes(docs);
+          setUseDefaults(false);
         }
       } catch (err) {
-        console.error('🔥 Error loading recipes:', err);
+        console.error('🔥 Error loading Firestore:', err);
+        const res = await fetch('/recipes.json');
+        const data = await res.json();
+        setSavedRecipes(data);
         setUseDefaults(true);
-        setSavedRecipes(defaultRecipes);
       } finally {
         setLoading(false);
       }
@@ -60,29 +67,19 @@ export default function SavedRecipes({ user = null }) {
 
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'recipes', recipeId));
-      console.log(`🗑️ Deleted recipe: ${recipeId}`);
-
       const ref = collection(db, 'users', user.uid, 'recipes');
       const snapshot = await getDocs(ref);
-
-      if (snapshot.empty) {
-        console.log('🧪 No more saved recipes — using default recipes');
-        setUseDefaults(true);
-        setSavedRecipes(defaultRecipes);
-      } else {
-        const updated = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUseDefaults(false);
-        setSavedRecipes(updated);
-      }
+      const updated = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setSavedRecipes(updated);
     } catch (err) {
       console.error('🔥 Delete failed:', err);
     }
   };
 
-  if (user === undefined || loading) {
+  if (loading) {
     return (
       <section className="max-w-3xl mx-auto px-4 text-center text-gray-400 mt-12">
         Loading saved recipes…
