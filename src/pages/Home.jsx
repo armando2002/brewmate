@@ -6,7 +6,7 @@ import recipes from '../data/recipes.json';
 import RecipeCard from '../components/RecipeCard';
 import SaveRecipeButton from '../components/SaveRecipeButton';
 import SavedRecipes from '../components/SavedRecipes';
-import GptPrompt from '../components/GptPrompt'; // 👈 NEW: GPT prompt component
+import GptPrompt from '../components/GptPrompt';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -15,32 +15,34 @@ export default function Home() {
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        navigate('/');
-      } else {
-        setUser(u);
-      }
+      setUser(u || null); // always set state, even if null
     });
     return () => unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const handleSignOut = () => {
     signOut(getAuth()).then(() => navigate('/'));
   };
 
-  if (!user) return null;
-
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="py-6 text-center shadow-lg bg-neutral-950">
         <h1 className="text-4xl font-bold">BrewMate Recipes</h1>
-        <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
-        <button
-          onClick={handleSignOut}
-          className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
-        >
-          Sign Out
-        </button>
+        {user ? (
+          <>
+            <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
+            <button
+              onClick={handleSignOut}
+              className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+            >
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-gray-400">
+            Sign in to save and manage your custom recipes
+          </p>
+        )}
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-12">
@@ -48,16 +50,13 @@ export default function Home() {
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => (
             <div key={recipe.name}>
-              <RecipeCard {...recipe} />
-              <SaveRecipeButton recipe={recipe} />
+              <RecipeCard recipe={recipe} />
+              {user && <SaveRecipeButton recipe={recipe} />}
             </div>
           ))}
         </div>
 
-        {/* 🔮 GPT Prompt Section */}
         <GptPrompt />
-
-        {/* 💾 Display user-saved recipes */}
         <SavedRecipes />
       </main>
     </div>
