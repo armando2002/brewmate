@@ -5,16 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import recipes from '../data/recipes.json';
 import RecipeCard from '../components/RecipeCard';
 import SaveRecipeButton from '../components/SaveRecipeButton';
-import SavedRecipes from '../components/SavedRecipes';
 import GptPrompt from '../components/GptPrompt';
+import SavedRecipes from '../components/SavedRecipes';
 
 export default function Home() {
   const [user, setUser] = useState(undefined);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(getAuth(), (u) => {
       setUser(u || null);
     });
     return () => unsubscribe();
@@ -50,22 +49,26 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-semibold mb-6">Sample Recipes</h2>
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-12">
-          {recipes.map((recipe) => (
-            <div key={recipe.name}>
-              <RecipeCard recipe={recipe} />
-              {user && <SaveRecipeButton recipe={recipe} />}
-            </div>
-          ))}
-        </div>
+        {/* 🔁 Always show sample recipes */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6">
+            {user ? 'Popular Recipes' : 'Sample Recipes'}
+          </h2>
+          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {recipes.map((recipe) => (
+              <div key={recipe.name}>
+                <RecipeCard recipe={recipe} />
+                {user && <SaveRecipeButton recipe={recipe} />}
+              </div>
+            ))}
+          </div>
+        </section>
 
-        {user && (
-          <>
-            <GptPrompt />
-            <SavedRecipes user={user} />
-          </>
-        )}
+        {/* 💬 GPT Prompt */}
+        <GptPrompt />
+
+        {/* 💾 Only show saved recipes section if user is logged in */}
+        {user && <SavedRecipes user={user} />}
       </main>
     </div>
   );
