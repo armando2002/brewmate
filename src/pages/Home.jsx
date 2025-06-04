@@ -2,20 +2,19 @@
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import recipes from '../data/recipes.json';
-import RecipeCard from '../components/RecipeCard';
-import SaveRecipeButton from '../components/SaveRecipeButton';
 import SavedRecipes from '../components/SavedRecipes';
 import GptPrompt from '../components/GptPrompt';
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u || null); // always set state, even if null
+      setUser(u || null);
+      setAuthChecked(true);
     });
     return () => unsubscribe();
   }, []);
@@ -23,6 +22,14 @@ export default function Home() {
   const handleSignOut = () => {
     signOut(getAuth()).then(() => navigate('/'));
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
+        <p className="text-gray-400">Checking authentication…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
@@ -46,16 +53,7 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-semibold mb-6">Sample Recipes</h2>
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {recipes.map((recipe) => (
-            <div key={recipe.name}>
-              <RecipeCard recipe={recipe} />
-              {user && <SaveRecipeButton recipe={recipe} />}
-            </div>
-          ))}
-        </div>
-
+        {/* GPT + Saved or fallback recipes */}
         <GptPrompt />
         <SavedRecipes />
       </main>
