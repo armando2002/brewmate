@@ -15,8 +15,9 @@ export default function SavedRecipes() {
   const [user, setUser] = useState(null);
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [useDefaults, setUseDefaults] = useState(false);
 
-  // Watch for user login state
+  // Detect login state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -24,11 +25,12 @@ export default function SavedRecipes() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch user’s saved recipes if logged in
+  // Load recipes from Firestore or fallback
   useEffect(() => {
-    const fetchSavedRecipes = async () => {
+    const fetchRecipes = async () => {
       if (!user) {
-        console.log('🧪 No user logged in — using default recipes');
+        console.log('🧪 No user logged in -- using default recipes');
+        setUseDefaults(true);
         setSavedRecipes(defaultRecipes);
         setLoading(false);
         return;
@@ -39,24 +41,27 @@ export default function SavedRecipes() {
         const snapshot = await getDocs(ref);
 
         if (snapshot.empty) {
-          console.log('🧪 Firestore empty — using default recipes');
+          console.log('🧪 Firestore empty -- using default recipes');
+          setUseDefaults(true);
           setSavedRecipes(defaultRecipes);
         } else {
-          const userRecipes = snapshot.docs.map((doc) => ({
+          const docs = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
           }));
-          setSavedRecipes(userRecipes);
+          setUseDefaults(false);
+          setSavedRecipes(docs);
         }
       } catch (err) {
         console.error('🔥 Error loading recipes:', err);
+        setUseDefaults(true);
         setSavedRecipes(defaultRecipes);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSavedRecipes();
+    fetchRecipes();
   }, [user]);
 
   const handleDelete = async (recipeId) => {
@@ -66,17 +71,19 @@ export default function SavedRecipes() {
       await deleteDoc(doc(db, 'users', user.uid, 'recipes', recipeId));
       console.log(`🗑️ Deleted recipe: ${recipeId}`);
 
-      // Refetch recipes after deletion
       const ref = collection(db, 'users', user.uid, 'recipes');
       const snapshot = await getDocs(ref);
+
       if (snapshot.empty) {
-        console.log('🧪 No more saved recipes — showing defaults');
+        console.log('🧪 No more saved recipes -- using default recipes');
+        setUseDefaults(true);
         setSavedRecipes(defaultRecipes);
       } else {
-        const updated = snapshot.docs.map((doc) => ({
+        const updated = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
+        setUseDefaults(false);
         setSavedRecipes(updated);
       }
     } catch (err) {
@@ -97,41 +104,12 @@ export default function SavedRecipes() {
       <h2 className="text-xl font-bold mb-6 text-center">Saved Recipes</h2>
 
       {savedRecipes.map((recipe, index) => (
-        <div
-          key={recipe.id || index}
-          className="bg-neutral-900 border border-neutral-700 rounded-2xl shadow-xl p-6 sm:p-8 mb-10 animate-fade-in"
-        >
-          <h3 className="text-2xl font-bold text-amber-400 mb-1">{recipe.name}</h3>
-          <p className="text-xs text-gray-400 mb-1">SRM {recipe.srm}</p>
-          <p className="text-sm text-gray-300 mb-2">{recipe.style}</p>
-          <p className="text-sm text-gray-300 mb-4">
-            <strong>ABV:</strong> {recipe.abv} &nbsp;•&nbsp;
-            <strong>OG:</strong> {recipe.og} &nbsp;•&nbsp;
-            <strong>FG:</strong> {recipe.fg}
-          </p>
-
-          <ul className="list-disc list-inside space-y-1 text-sm mb-6">
-            {(typeof recipe.ingredients === 'string'
-              ? recipe.ingredients.split(/\r?\n/).filter(Boolean)
-              : recipe.ingredients || []
-            ).map((item, i) => (
-              <li key={i} className="text-gray-200">{item}</li>
-            ))}
-          </ul>
-
-          <p className="text-sm text-gray-300 whitespace-pre-line mb-6">
-            {recipe.instructions}
-          </p>
-
-          {user && recipe.id && (
-            <button
-              onClick={() => handleDelete(recipe.id)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-            >
-              Delete Recipe
-            </button>
-          )}
-        </div>
+        <RecipeCard
+          key={recipe.id || `default-${index}`}
+          recipe={recipe}
+          showDelete={user && !useDefaults}
+          onDelete={() => handleDelete(recipe.id)}
+        />
       ))}
     </section>
   );
