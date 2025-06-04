@@ -1,33 +1,22 @@
-// src/components/SavedRecipes.jsx
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
 import {
   collection,
   getDocs,
   deleteDoc,
   doc,
 } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { db } from '../firebase';
 import RecipeCard from './RecipeCard';
 import defaultRecipes from '../data/recipes.json';
 
-export default function SavedRecipes() {
-  const [user, setUser] = useState(undefined); // Track uninitialized state
+export default function SavedRecipes({ user }) {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [useDefaults, setUseDefaults] = useState(false);
 
-  // Detect login state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Load recipes from Firestore or fallback
-  useEffect(() => {
-    if (user === undefined) return; // Wait until auth is initialized
+    // Only run once user is resolved (null or an object)
+    if (user === undefined) return;
 
     const fetchRecipes = async () => {
       if (!user) {
@@ -93,7 +82,7 @@ export default function SavedRecipes() {
     }
   };
 
-  if (loading) {
+  if (user === undefined || loading) {
     return (
       <section className="max-w-3xl mx-auto px-4 text-center text-gray-400 mt-12">
         Loading saved recipes…
