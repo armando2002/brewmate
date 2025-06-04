@@ -1,5 +1,5 @@
 // src/firebase.js
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -26,7 +26,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// ✅ Prevent duplicate initialization
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// ✅ Exports
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
@@ -35,7 +38,7 @@ export const signIn = () => signInWithPopup(auth, provider);
 export const logout = () => signOut(auth);
 export const onAuthChange = (cb) => onAuthStateChanged(auth, cb);
 
-// Firestore helpers
+// ✅ Firestore helpers
 export async function saveUserRecipe(user, recipe) {
   const userRef = doc(db, 'users', user.uid);
   const recipeRef = doc(collection(userRef, 'recipes'));
