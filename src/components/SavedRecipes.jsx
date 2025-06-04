@@ -16,6 +16,7 @@ export default function SavedRecipes() {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Monitor login state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -23,14 +24,15 @@ export default function SavedRecipes() {
     return () => unsubscribe();
   }, []);
 
+  // Load saved recipes from Firestore
   useEffect(() => {
-    if (!user) {
-      setSavedRecipes([]);
-      setLoading(false);
-      return;
-    }
+    const loadRecipes = async () => {
+      if (!user) {
+        setSavedRecipes([]);
+        setLoading(false);
+        return;
+      }
 
-    const fetchSavedRecipes = async () => {
       try {
         const ref = collection(db, 'users', user.uid, 'recipes');
         const snap = await getDocs(ref);
@@ -43,15 +45,14 @@ export default function SavedRecipes() {
       }
     };
 
-    fetchSavedRecipes();
+    loadRecipes();
   }, [user]);
 
+  // Delete recipe from Firestore and re-fetch
   const handleDelete = async (id) => {
     if (!user || !id) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'recipes', id));
-
-      // Re-fetch saved recipes after deletion
       const ref = collection(db, 'users', user.uid, 'recipes');
       const snap = await getDocs(ref);
       const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -61,8 +62,8 @@ export default function SavedRecipes() {
     }
   };
 
-  const shouldShowDefaults = !user || (user && savedRecipes.length === 0);
-  const recipesToRender = shouldShowDefaults ? defaultRecipes.slice(0, 3) : savedRecipes;
+  const showDefaults = !user || (user && savedRecipes.length === 0);
+  const recipesToRender = showDefaults ? defaultRecipes.slice(0, 3) : savedRecipes;
 
   return (
     <section className="max-w-3xl mx-auto px-4 mb-24">
@@ -76,7 +77,7 @@ export default function SavedRecipes() {
             <RecipeCard
               key={recipe.id || recipe.name}
               recipe={recipe}
-              onDelete={recipe.id ? () => handleDelete(recipe.id) : null}
+              onDelete={user && recipe.id ? () => handleDelete(recipe.id) : null}
             />
           ))}
         </div>
