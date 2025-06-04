@@ -1,5 +1,5 @@
 // src/components/RecipeCard.jsx
-export default function RecipeCard({ recipe, onDelete }) {
+export default function RecipeCard({ recipe, onDelete, showDelete = false }) {
   if (!recipe) return null;
 
   const getIngredientList = () => {
@@ -55,12 +55,12 @@ export default function RecipeCard({ recipe, onDelete }) {
         {recipe.instructions}
       </p>
 
-      {onDelete && (
+      {showDelete && onDelete && (
         <button
           onClick={onDelete}
           className="text-sm text-red-400 border border-red-500 px-4 py-2 rounded-lg hover:bg-red-800 transition"
         >
-          Delete
+          Delete Recipe
         </button>
       )}
     </div>
