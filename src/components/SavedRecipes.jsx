@@ -16,7 +16,7 @@ export default function SavedRecipes() {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Monitor login state
+  // Listen to login state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -24,7 +24,7 @@ export default function SavedRecipes() {
     return () => unsubscribe();
   }, []);
 
-  // Load saved recipes from Firestore
+  // Load saved recipes when user changes
   useEffect(() => {
     const loadRecipes = async () => {
       if (!user) {
@@ -48,7 +48,7 @@ export default function SavedRecipes() {
     loadRecipes();
   }, [user]);
 
-  // Delete recipe from Firestore and re-fetch
+  // Delete recipe and refresh Firestore
   const handleDelete = async (id) => {
     if (!user || !id) return;
     try {
