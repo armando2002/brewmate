@@ -50,7 +50,12 @@ export default function SavedRecipes() {
     if (!user || !id) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'recipes', id));
-      setSavedRecipes((prev) => prev.filter((r) => r.id !== id));
+
+      // Re-fetch saved recipes after deletion
+      const ref = collection(db, 'users', user.uid, 'recipes');
+      const snap = await getDocs(ref);
+      const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setSavedRecipes(data);
     } catch (err) {
       console.error('Delete error:', err);
     }
@@ -71,7 +76,7 @@ export default function SavedRecipes() {
             <RecipeCard
               key={recipe.id || recipe.name}
               recipe={recipe}
-              onDelete={shouldShowDefaults ? null : () => handleDelete(recipe.id)}
+              onDelete={recipe.id ? () => handleDelete(recipe.id) : null}
             />
           ))}
         </div>
