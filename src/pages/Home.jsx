@@ -60,8 +60,12 @@ export default function Home() {
           ))}
         </div>
 
-        <GptPrompt />
-        <SavedRecipes user={user} />
+        {user && (
+          <>
+            <GptPrompt />
+            <SavedRecipes user={user} />
+          </>
+        )}
       </main>
     </div>
   );
