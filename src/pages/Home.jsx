@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import recipes from '../data/recipes.json';
+import RecipeCard from '../components/RecipeCard';
+import SaveRecipeButton from '../components/SaveRecipeButton';
 import SavedRecipes from '../components/SavedRecipes';
 import GptPrompt from '../components/GptPrompt';
 
@@ -53,8 +56,21 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* GPT + Saved or fallback recipes */}
+        {/* ✅ Sample Recipes always visible */}
+        <h2 className="text-2xl font-semibold mb-6">Sample Recipes</h2>
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-12">
+          {recipes.map((recipe) => (
+            <div key={recipe.name}>
+              <RecipeCard recipe={recipe} />
+              {user && <SaveRecipeButton recipe={recipe} />}
+            </div>
+          ))}
+        </div>
+
+        {/* 🔮 GPT Prompt */}
         <GptPrompt />
+
+        {/* 💾 Saved or fallback recipes */}
         <SavedRecipes />
       </main>
     </div>
