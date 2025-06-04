@@ -1,3 +1,4 @@
+// src/components/SavedRecipes.jsx
 import { useEffect, useState } from 'react';
 import {
   collection,
@@ -9,18 +10,17 @@ import { db } from '../firebase';
 import RecipeCard from './RecipeCard';
 import defaultRecipes from '../data/recipes.json';
 
-export default function SavedRecipes({ user }) {
+export default function SavedRecipes({ user = null }) {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [useDefaults, setUseDefaults] = useState(false);
 
   useEffect(() => {
-    // Only run once user is resolved (null or an object)
-    if (user === undefined) return;
+    if (user === undefined) return; // Wait for user to resolve
 
     const fetchRecipes = async () => {
       if (!user) {
-        console.log('🧪 No user logged in -- using default recipes');
+        console.log('🧪 No user logged in — using default recipes');
         setUseDefaults(true);
         setSavedRecipes(defaultRecipes);
         setLoading(false);
@@ -32,7 +32,7 @@ export default function SavedRecipes({ user }) {
         const snapshot = await getDocs(ref);
 
         if (snapshot.empty) {
-          console.log('🧪 Firestore empty -- using default recipes');
+          console.log('🧪 Firestore empty — using default recipes');
           setUseDefaults(true);
           setSavedRecipes(defaultRecipes);
         } else {
@@ -66,7 +66,7 @@ export default function SavedRecipes({ user }) {
       const snapshot = await getDocs(ref);
 
       if (snapshot.empty) {
-        console.log('🧪 No more saved recipes -- using default recipes');
+        console.log('🧪 No more saved recipes — using default recipes');
         setUseDefaults(true);
         setSavedRecipes(defaultRecipes);
       } else {
