@@ -61,7 +61,7 @@ export default function Home() {
         </div>
 
         <GptPrompt />
-        <SavedRecipes user={user} /> {/* 👈 Force pass user */}
+        <SavedRecipes user={user} />
       </main>
     </div>
   );
