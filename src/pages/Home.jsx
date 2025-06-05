@@ -19,6 +19,11 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  const handleSignIn = async () => {
+    const { signIn } = await import('../firebase');
+    signIn();
+  };
+
   if (user === undefined) {
     return (
       <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
@@ -29,47 +34,57 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="py-6 text-center shadow-lg bg-neutral-950">
+      <header className="pt-6 pb-3 text-center shadow-lg bg-neutral-950">
         <h1 className="text-4xl font-bold">BrewMate Recipes</h1>
         {user ? (
           <>
             <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
             <button
               onClick={() => signOut(getAuth()).then(() => navigate('/'))}
-              className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+              className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
             >
               Sign Out
             </button>
           </>
         ) : (
-          <p className="mt-2 text-sm text-gray-400">
-            Sign in to save and manage your custom recipes
-          </p>
+          <>
+            <p className="mt-2 text-sm text-gray-400">
+              Sign in to save and manage your custom recipes
+            </p>
+            <button
+              onClick={handleSignIn}
+              className="mt-3 px-4 py-2 bg-amber-500 text-black font-semibold hover:bg-amber-600 rounded-lg"
+            >
+              Sign In with Google
+            </button>
+          </>
         )}
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* 🔁 Always show sample recipes */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">
-            {user ? 'Popular Recipes' : 'Sample Recipes'}
-          </h2>
-          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((recipe) => (
-              <div key={recipe.name}>
-                <RecipeCard recipe={recipe} />
-                {user && <SaveRecipeButton recipe={recipe} />}
-              </div>
-            ))}
-          </div>
-        </section>
+      <main className="max-w-6xl mx-auto px-6 pt-4 pb-10 sm:pt-6 sm:pb-12">
+  {/* 💬 GPT Prompt */}
+  <div className="mb-4">
+    <GptPrompt />
+  </div>
 
-        {/* 💬 GPT Prompt */}
-        <GptPrompt />
+  {/* 🔁 Always show sample recipes */}
+  <section className="mb-8">
+    <h2 className="text-2xl font-semibold mb-3 text-center">
+      {user ? 'Popular Recipes' : 'Sample Recipes'}
+    </h2>
+    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {recipes.map((recipe) => (
+        <div key={recipe.name}>
+          <RecipeCard recipe={recipe} />
+          {user && <SaveRecipeButton recipe={recipe} />}
+        </div>
+      ))}
+    </div>
+  </section>
 
-        {/* 💾 Only show saved recipes section if user is logged in */}
-        {user && <SavedRecipes user={user} />}
-      </main>
+  {/* 💾 Saved Recipes */}
+  {user && <SavedRecipes user={user} />}
+</main>
     </div>
   );
 }

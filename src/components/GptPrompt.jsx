@@ -65,7 +65,7 @@ export default function GptPrompt() {
   };
 
   return (
-    <section className="mt-20 mb-24 max-w-3xl mx-auto px-4">
+    <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
       <h2 className="text-2xl font-bold text-center mb-2">🍺 Brew with AI</h2>
       <p className="text-center text-sm text-gray-400 mb-8">
         Describe your beer idea below and BrewMate will craft a custom recipe for you.
