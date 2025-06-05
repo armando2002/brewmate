@@ -1,3 +1,9 @@
+/* 🧠 Tailwind must come first */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ Custom fonts and overrides */
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;800&display=swap');
 
 :root {

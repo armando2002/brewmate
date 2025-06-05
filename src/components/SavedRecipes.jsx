@@ -1,75 +1,48 @@
 // src/components/SavedRecipes.jsx
 import { useEffect, useState } from 'react';
 import RecipeCard from './RecipeCard';
-import { collection, getDocs, doc } from 'firebase/firestore';
-import { db } from '../firebase';
-import defaultRecipes from '../data/recipes.json';
 
 export default function SavedRecipes({ user }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [useDefaults, setUseDefaults] = useState(false);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      if (!user) {
-        console.log('👤 Guest mode: loading default recipes');
-        setRecipes(defaultRecipes);
-        setUseDefaults(true);
-        setLoading(false);
-        return;
-      }
-
+    const loadRecipes = async () => {
+      setLoading(true);
       try {
-        const recipesRef = collection(doc(db, 'users', user.uid), 'recipes');
-        const snapshot = await getDocs(recipesRef);
-
-        if (snapshot.empty) {
-          console.log('📭 No saved recipes — using defaults');
-          setRecipes(defaultRecipes);
-          setUseDefaults(true);
-        } else {
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (!user) {
+          const res = await fetch('/recipes.json');
+          const data = await res.json();
           setRecipes(data);
-          setUseDefaults(false);
+        } else {
+          setRecipes([]); // 🔁 Replace with Firestore recipe loading logic soon
         }
       } catch (err) {
-        console.error('❌ Error loading Firestore recipes:', err);
-        setRecipes(defaultRecipes);
-        setUseDefaults(true);
+        console.error('🔥 Failed to load fallback recipes:', err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchRecipes();
+    loadRecipes();
   }, [user]);
 
-  if (loading) {
-    return (
-      <section className="max-w-3xl mx-auto px-4 text-center text-gray-400 mt-12">
-        Loading recipes…
-      </section>
-    );
-  }
-
-  if (!recipes.length) {
-    return null;
-  }
+  if (loading || !recipes.length) return null;
 
   return (
-    <section className="mt-16 max-w-3xl mx-auto px-4">
-      <h2 className="text-xl font-bold mb-6 text-center">
-        {user && !useDefaults ? 'Your Saved Recipes' : 'Sample Recipes'}
+    <section className="mt-16 px-4 max-w-7xl mx-auto">
+      <h2 className="text-3xl font-bold mb-10 text-center text-white tracking-tight">
+        {user ? 'Your Recipes' : 'Popular Recipes'}
       </h2>
 
-      {recipes.map((recipe, index) => (
-        <RecipeCard
-          key={recipe.id || `default-${index}`}
-          recipe={recipe}
-          showDelete={!useDefaults && user}
-        />
-      ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {recipes.map((recipe, index) => (
+          <RecipeCard
+            key={recipe.id || `default-${index}`}
+            recipe={recipe}
+            showDelete={false} // you can toggle this for logged-in users later
+          />
+        ))}
+      </div>
     </section>
   );
 }

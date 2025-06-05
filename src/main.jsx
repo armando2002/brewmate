@@ -1,4 +1,5 @@
 // src/main.jsx
+import './firebase'; // ✅ This line MUST be first, before any Firebase usage
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';

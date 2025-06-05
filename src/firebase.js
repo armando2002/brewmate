@@ -5,7 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -13,10 +13,10 @@ import {
   collection,
   setDoc,
   getDocs,
-  query
+  query,
 } from 'firebase/firestore';
 
-// ✅ Dual prefix support: LOCAL = PUBLIC_, VERCEL = VITE_
+// ✅ Load Firebase config from VITE_ or PUBLIC_ (Vercel)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.PUBLIC_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -26,19 +26,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.PUBLIC_FIREBASE_APP_ID,
 };
 
-// ✅ Prevent duplicate initialization
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// ✅ Initialize Firebase App if not already initialized
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp(); // Prevent double init
+}
 
-// ✅ Exports
+// ✅ Auth & Firestore Setup
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// ✅ Auth Helpers
 export const signIn = () => signInWithPopup(auth, provider);
 export const logout = () => signOut(auth);
-export const onAuthChange = (cb) => onAuthStateChanged(auth, cb);
+export const onAuthChange = (callback) => onAuthStateChanged(auth, callback);
 
-// ✅ Firestore helpers
+// ✅ Firestore Helpers
 export async function saveUserRecipe(user, recipe) {
   const userRef = doc(db, 'users', user.uid);
   const recipeRef = doc(collection(userRef, 'recipes'));
@@ -52,5 +58,5 @@ export async function getUserRecipes(uid) {
   const recipesRef = collection(doc(db, 'users', uid), 'recipes');
   const q = query(recipesRef);
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
