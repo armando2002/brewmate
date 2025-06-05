@@ -40,7 +40,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="pt-6 pb-3 text-center shadow-lg bg-neutral-950">
-        <h1 className="text-4xl font-bold">BrewMate Recipes</h1>
+        <img
+  src="/brewmate-logo-transparent-cleaned.png"
+  alt="BrewMate Logo"
+  className="mx-auto h-20"
+/>
+
         {user ? (
           <>
             <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
