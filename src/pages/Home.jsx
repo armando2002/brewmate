@@ -79,11 +79,16 @@ export default function Home() {
           </h2>
           <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {recipes.map((recipe) => (
-              <div key={recipe.name}>
-                <RecipeCard recipe={recipe} />
-                {user && <SaveRecipeButton recipe={recipe} />}
-              </div>
-            ))}
+  <div key={recipe.name}>
+    <RecipeCard recipe={recipe} />
+    {user && (
+      <SaveRecipeButton
+        recipe={recipe}
+        onSave={handleRecipeSaved} // ✅ now wired!
+      />
+    )}
+  </div>
+))}
           </div>
         </section>
 

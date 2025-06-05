@@ -1,6 +1,8 @@
 // src/components/SavedRecipes.jsx
 import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import toast from 'react-hot-toast';
 import fallbackRecipes from '../data/recipes.json';
 import RecipeCard from './RecipeCard';
 
@@ -35,15 +37,24 @@ const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
     loadRecipes();
   }, [user, loadRecipes]);
 
-  // Let parent trigger reload with ref
+  // Allow parent to trigger a refresh
   useImperativeHandle(ref, () => ({
     refetch: loadRecipes
   }));
 
-  const handleDelete = (idToDelete) => {
-    const updated = recipes.filter(r => r.id !== idToDelete);
-    setRecipes(updated);
-    // 🔁 Firestore deletion can be added here later
+  const handleDelete = async (idToDelete) => {
+    if (!user) return;
+
+    try {
+      const db = getFirestore();
+      await deleteDoc(doc(db, 'users', user.uid, 'recipes', idToDelete));
+
+      setRecipes(prev => prev.filter(r => r.id !== idToDelete));
+      toast.success('🗑️ Recipe deleted!');
+    } catch (err) {
+      console.error('❌ Failed to delete recipe:', err);
+      toast.error('Failed to delete recipe');
+    }
   };
 
   if (loading) return null;

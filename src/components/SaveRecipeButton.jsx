@@ -1,12 +1,16 @@
 // src/components/SaveRecipeButton.jsx
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
-export default function SaveRecipeButton({ recipe }) {
+export default function SaveRecipeButton({ recipe, onSave }) {
   const handleSave = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
-    if (!user) return alert('You must be signed in to save recipes.');
+    if (!user) {
+      toast.error('⚠️ You must be signed in to save recipes.');
+      return;
+    }
 
     try {
       const db = getFirestore();
@@ -16,11 +20,14 @@ export default function SaveRecipeButton({ recipe }) {
         createdAt: serverTimestamp(),
       });
 
-      alert('✅ Recipe saved!');
-      window.location.reload(); // Temporary full refresh – replace later with UI update
+      toast.success('✅ Recipe saved!');
+      
+      if (onSave) {
+        onSave(); // Trigger SavedRecipes refetch
+      }
     } catch (err) {
       console.error('Error saving recipe:', err);
-      alert('❌ Failed to save recipe.');
+      toast.error('❌ Failed to save recipe.');
     }
   };
 
