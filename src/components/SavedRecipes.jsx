@@ -1,39 +1,49 @@
 // src/components/SavedRecipes.jsx
-import { useEffect, useState } from 'react';
-import RecipeCard from './RecipeCard';
+import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import fallbackRecipes from '../data/recipes.json';
+import RecipeCard from './RecipeCard';
 
-export default function SavedRecipes({ user }) {
+const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadRecipes = async () => {
-      setLoading(true);
-      try {
-        if (!user) {
-          setRecipes(fallbackRecipes);
-        } else {
-          const saved = JSON.parse(localStorage.getItem('savedRecipes')) || [];
-          const valid = saved.filter((r) => r && r.name); // filter out blanks
-          setRecipes(valid);
-        }
-      } catch (err) {
-        console.error('🔥 Failed to load recipes:', err);
-        setRecipes([]);
-      } finally {
-        setLoading(false);
+  const loadRecipes = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (!user) {
+        setRecipes(fallbackRecipes);
+      } else {
+        const db = getFirestore();
+        const snapshot = await getDocs(collection(db, 'users', user.uid, 'recipes'));
+        const saved = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        const valid = saved.filter(r => r && r.name);
+        setRecipes(valid);
       }
-    };
-    loadRecipes();
+    } catch (err) {
+      console.error('🔥 Failed to load recipes:', err);
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
+  useEffect(() => {
+    loadRecipes();
+  }, [user, loadRecipes]);
+
+  // Let parent trigger reload with ref
+  useImperativeHandle(ref, () => ({
+    refetch: loadRecipes
+  }));
+
   const handleDelete = (idToDelete) => {
-    const updated = recipes.filter((r) => r.id !== idToDelete);
+    const updated = recipes.filter(r => r.id !== idToDelete);
     setRecipes(updated);
-    if (user) {
-      localStorage.setItem('savedRecipes', JSON.stringify(updated));
-    }
+    // 🔁 Firestore deletion can be added here later
   };
 
   if (loading) return null;
@@ -64,4 +74,6 @@ export default function SavedRecipes({ user }) {
       )}
     </section>
   );
-}
+});
+
+export default SavedRecipes;

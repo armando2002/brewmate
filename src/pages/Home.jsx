@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import recipes from '../data/recipes.json';
@@ -10,6 +10,7 @@ import SavedRecipes from '../components/SavedRecipes';
 
 export default function Home() {
   const [user, setUser] = useState(undefined);
+  const savedRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +23,10 @@ export default function Home() {
   const handleSignIn = async () => {
     const { signIn } = await import('../firebase');
     signIn();
+  };
+
+  const handleRecipeSaved = () => {
+    savedRef.current?.refetch();
   };
 
   if (user === undefined) {
@@ -62,29 +67,29 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 pt-4 pb-10 sm:pt-6 sm:pb-12">
-  {/* 💬 GPT Prompt */}
-  <div className="mb-4">
-    <GptPrompt />
-  </div>
-
-  {/* 🔁 Always show sample recipes */}
-  <section className="mb-8">
-    <h2 className="text-2xl font-semibold mb-3 text-center">
-      {user ? 'Popular Recipes' : 'Sample Recipes'}
-    </h2>
-    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {recipes.map((recipe) => (
-        <div key={recipe.name}>
-          <RecipeCard recipe={recipe} />
-          {user && <SaveRecipeButton recipe={recipe} />}
+        {/* 💬 GPT Prompt */}
+        <div className="mb-4">
+          <GptPrompt onSave={handleRecipeSaved} />
         </div>
-      ))}
-    </div>
-  </section>
 
-  {/* 💾 Saved Recipes */}
-  {user && <SavedRecipes user={user} />}
-</main>
+        {/* 🔁 Always show sample recipes */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold mb-3 text-center">
+            {user ? 'Popular Recipes' : 'Sample Recipes'}
+          </h2>
+          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {recipes.map((recipe) => (
+              <div key={recipe.name}>
+                <RecipeCard recipe={recipe} />
+                {user && <SaveRecipeButton recipe={recipe} />}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 💾 Saved Recipes */}
+        {user && <SavedRecipes ref={savedRef} user={user} />}
+      </main>
     </div>
   );
 }

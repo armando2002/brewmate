@@ -15,7 +15,9 @@ export default function SaveRecipeButton({ recipe }) {
         ...recipe,
         createdAt: serverTimestamp(),
       });
+
       alert('✅ Recipe saved!');
+      window.location.reload(); // ✅ Force full page refresh
     } catch (err) {
       console.error('Error saving recipe:', err);
       alert('❌ Failed to save recipe.');

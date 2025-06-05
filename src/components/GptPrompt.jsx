@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import SaveRecipeButton from './SaveRecipeButton';
 
-export default function GptPrompt() {
+export default function GptPrompt({ onSave }) {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -132,7 +132,12 @@ export default function GptPrompt() {
             {response.instructions}
           </p>
 
-          {response.name !== 'Error' && <SaveRecipeButton recipe={response} />}
+          {response.name !== 'Error' && (
+            <SaveRecipeButton
+              recipe={response}
+              onSave={onSave} // ✅ Trigger callback to refresh
+            />
+          )}
         </div>
       )}
     </section>
