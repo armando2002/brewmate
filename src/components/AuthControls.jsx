@@ -10,13 +10,15 @@ export default function AuthControls() {
   }, []);
 
   return (
-    <div className="text-center mt-6">
+    <div className="text-center mt-8">
       {user ? (
         <>
-          <p className="mb-2 text-sm">Signed in as <strong>{user.displayName}</strong></p>
+          <p className="mb-3 text-sm text-gray-300">
+            Signed in as <strong>{user.displayName}</strong>
+          </p>
           <button
             onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
           >
             Sign Out
           </button>
@@ -24,7 +26,7 @@ export default function AuthControls() {
       ) : (
         <button
           onClick={signIn}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
         >
           Sign in with Google
         </button>

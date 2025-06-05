@@ -46,7 +46,7 @@ export default function Home() {
             <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
             <button
               onClick={() => signOut(getAuth()).then(() => navigate('/'))}
-              className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+              className="mt-3 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
             >
               Sign Out
             </button>
@@ -58,7 +58,7 @@ export default function Home() {
             </p>
             <button
               onClick={handleSignIn}
-              className="mt-3 px-4 py-2 bg-amber-500 text-black font-semibold hover:bg-amber-600 rounded-lg"
+              className="mt-3 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
             >
               Sign In with Google
             </button>

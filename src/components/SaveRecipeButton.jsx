@@ -17,7 +17,7 @@ export default function SaveRecipeButton({ recipe }) {
       });
 
       alert('✅ Recipe saved!');
-      window.location.reload(); // ✅ Force full page refresh
+      window.location.reload(); // Temporary full refresh – replace later with UI update
     } catch (err) {
       console.error('Error saving recipe:', err);
       alert('❌ Failed to save recipe.');
@@ -27,7 +27,7 @@ export default function SaveRecipeButton({ recipe }) {
   return (
     <button
       onClick={handleSave}
-      className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white"
+      className="mt-6 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
     >
       Save Recipe
     </button>
