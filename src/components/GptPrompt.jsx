@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import SaveRecipeButton from './SaveRecipeButton';
 import SuggestFromSaved from './SuggestFromSaved';
+import FollowUpPrompt from './FollowUpPrompt'; // ✅ NEW
 
 export default function GptPrompt({ onSave }) {
   const [prompt, setPrompt] = useState('');
@@ -208,7 +209,10 @@ export default function GptPrompt({ onSave }) {
           )}
 
           {response.name !== 'Error' && (
-            <SaveRecipeButton recipe={response} onSave={onSave} />
+            <>
+              <SaveRecipeButton recipe={response} onSave={onSave} />
+              <FollowUpPrompt contextRecipe={response} />
+            </>
           )}
         </div>
       )}
