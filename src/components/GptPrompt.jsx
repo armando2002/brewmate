@@ -25,7 +25,6 @@ export default function GptPrompt({ onSave }) {
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
-
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -67,7 +66,6 @@ export default function GptPrompt({ onSave }) {
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
-
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -107,6 +105,11 @@ export default function GptPrompt({ onSave }) {
     return [];
   };
 
+  const extractMashTemp = (text) => {
+    const match = text?.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
+    return match ? `${match[1]}°F` : null;
+  };
+
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
       {loading && (
@@ -135,7 +138,6 @@ export default function GptPrompt({ onSave }) {
         </button>
       </form>
 
-      {/* ✅ Moved below the prompt input */}
       <div className="mb-10 text-center">
         <SuggestFromSaved onSuggest={handleSuggestFromSaved} />
       </div>
@@ -163,17 +165,46 @@ export default function GptPrompt({ onSave }) {
             <strong>FG:</strong> {response.fg}
           </p>
 
-          <ul className="list-disc list-inside space-y-1 text-sm mb-6">
-            {getIngredientList().map((item, idx) => (
-              <li key={idx} className="text-gray-200">
-                {item}
-              </li>
-            ))}
-          </ul>
+          {getIngredientList().length > 0 && (
+            <>
+              <h4 className="text-md font-semibold text-white mb-1">
+                Ingredients
+              </h4>
+              <ul className="list-disc list-inside space-y-1 text-sm mb-6 text-gray-200">
+                {getIngredientList().map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </>
+          )}
 
-          <p className="text-sm text-gray-300 whitespace-pre-line mb-6">
-            {response.instructions}
-          </p>
+          {response.instructions && extractMashTemp(response.instructions) && (
+            <p className="text-sm text-gray-400 mb-4">
+              <strong>Mash Temperature:</strong>{' '}
+              {extractMashTemp(response.instructions)}
+            </p>
+          )}
+
+          {response.instructions ? (
+            <>
+              <h4 className="text-md font-semibold text-white mb-1">
+                Instructions
+              </h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm mb-6 text-gray-300">
+                {response.instructions
+                  .split(/\r?\n/)
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+                  .map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+              </ol>
+            </>
+          ) : (
+            <p className="text-sm text-gray-300 whitespace-pre-line mb-6">
+              {response.instructions}
+            </p>
+          )}
 
           {response.name !== 'Error' && (
             <SaveRecipeButton recipe={response} onSave={onSave} />
