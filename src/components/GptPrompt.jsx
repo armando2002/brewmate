@@ -66,11 +66,6 @@ export default function GptPrompt({ onSave }) {
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
-      <h2 className="text-2xl font-bold text-center mb-2">🍺 Brew with AI</h2>
-      <p className="text-center text-sm text-gray-400 mb-8">
-        Describe your beer idea below and BrewMate will craft a custom recipe for you.
-      </p>
-
       {loading && (
         <div className="flex justify-center my-8">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent"></div>
@@ -135,7 +130,7 @@ export default function GptPrompt({ onSave }) {
           {response.name !== 'Error' && (
             <SaveRecipeButton
               recipe={response}
-              onSave={onSave} // ✅ Trigger callback to refresh
+              onSave={onSave}
             />
           )}
         </div>

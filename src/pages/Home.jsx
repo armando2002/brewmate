@@ -39,40 +39,52 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="pt-6 pb-3 text-center shadow-lg bg-neutral-950">
+      <header className="bg-neutral-950 shadow-lg px-4 py-2 flex items-center justify-between gap-4 flex-wrap">
         <img
-  src="/brewmate-logo-transparent-cleaned.png"
-  alt="BrewMate Logo"
-  className="mx-auto h-20"
-/>
+          src="/brewmate-logo-transparent-cleaned.png"
+          alt="BrewMate Logo"
+          className="h-28 sm:h-32 max-w-[220px] object-contain"
+        />
 
         {user ? (
-          <>
-            <p className="mt-2 text-lg">👋 Welcome, {user.displayName}</p>
+          <div className="text-right flex flex-col sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
+              👋 Welcome, {user.displayName}
+            </p>
             <button
               onClick={() => signOut(getAuth()).then(() => navigate('/'))}
-              className="mt-3 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+              className="mt-1 sm:mt-0 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm transition focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
             >
               Sign Out
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            <p className="mt-2 text-sm text-gray-400">
+          <div className="text-right">
+            <p className="text-sm text-gray-400">
               Sign in to save and manage your custom recipes
             </p>
             <button
               onClick={handleSignIn}
-              className="mt-3 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+              className="mt-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
             >
               Sign In with Google
             </button>
-          </>
+          </div>
         )}
       </header>
 
       <main className="max-w-6xl mx-auto px-6 pt-4 pb-10 sm:pt-6 sm:pb-12">
-        {/* 💬 GPT Prompt */}
+        {/* 💬 GPT Prompt Header */}
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl font-semibold mb-2">
+            Brew with <span className="text-amber-400">BrewMate AI</span>
+          </h2>
+          <p className="text-sm text-gray-400 max-w-xl mx-auto">
+            Describe your beer idea below and BrewMate will craft a custom recipe for you.
+          </p>
+        </div>
+
+        {/* 💬 GPT Prompt Input */}
         <div className="mb-4">
           <GptPrompt onSave={handleRecipeSaved} />
         </div>
@@ -84,16 +96,16 @@ export default function Home() {
           </h2>
           <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {recipes.map((recipe) => (
-  <div key={recipe.name}>
-    <RecipeCard recipe={recipe} />
-    {user && (
-      <SaveRecipeButton
-        recipe={recipe}
-        onSave={handleRecipeSaved} // ✅ now wired!
-      />
-    )}
-  </div>
-))}
+              <div key={recipe.name}>
+                <RecipeCard recipe={recipe} />
+                {user && (
+                  <SaveRecipeButton
+                    recipe={recipe}
+                    onSave={handleRecipeSaved}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </section>
 
