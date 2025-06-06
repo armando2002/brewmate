@@ -25,6 +25,7 @@ export default function GptPrompt({ onSave }) {
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
+
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -66,6 +67,7 @@ export default function GptPrompt({ onSave }) {
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
+
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -108,6 +110,14 @@ export default function GptPrompt({ onSave }) {
   const extractMashTemp = (text) => {
     const match = text?.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
     return match ? `${match[1]}°F` : null;
+  };
+
+  const getInstructionSteps = (text) => {
+    if (!text) return [];
+    const byLine = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    return byLine.length > 1
+      ? byLine
+      : text.split(/(?<=\.)\s+(?=\S)/).map((s) => s.trim()).filter(Boolean);
   };
 
   return (
@@ -167,9 +177,7 @@ export default function GptPrompt({ onSave }) {
 
           {getIngredientList().length > 0 && (
             <>
-              <h4 className="text-md font-semibold text-white mb-1">
-                Ingredients
-              </h4>
+              <h4 className="text-md font-semibold text-white mb-1">Ingredients</h4>
               <ul className="list-disc list-inside space-y-1 text-sm mb-6 text-gray-200">
                 {getIngredientList().map((item, idx) => (
                   <li key={idx}>{item}</li>
@@ -180,24 +188,17 @@ export default function GptPrompt({ onSave }) {
 
           {response.instructions && extractMashTemp(response.instructions) && (
             <p className="text-sm text-gray-400 mb-4">
-              <strong>Mash Temperature:</strong>{' '}
-              {extractMashTemp(response.instructions)}
+              <strong>Mash Temperature:</strong> {extractMashTemp(response.instructions)}
             </p>
           )}
 
           {response.instructions ? (
             <>
-              <h4 className="text-md font-semibold text-white mb-1">
-                Instructions
-              </h4>
+              <h4 className="text-md font-semibold text-white mb-1">Instructions</h4>
               <ol className="list-decimal list-inside space-y-1 text-sm mb-6 text-gray-300">
-                {response.instructions
-                  .split(/\r?\n/)
-                  .map((line) => line.trim())
-                  .filter(Boolean)
-                  .map((step, idx) => (
-                    <li key={idx}>{step}</li>
-                  ))}
+                {getInstructionSteps(response.instructions).map((step, idx) => (
+                  <li key={idx}>{step}</li>
+                ))}
               </ol>
             </>
           ) : (
