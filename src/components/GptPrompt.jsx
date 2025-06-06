@@ -2,12 +2,32 @@
 import { useState } from 'react';
 import SaveRecipeButton from './SaveRecipeButton';
 import SuggestFromSaved from './SuggestFromSaved';
-import FollowUpPrompt from './FollowUpPrompt'; // ✅ NEW
+import FollowUpPrompt from './FollowUpPrompt';
 
 export default function GptPrompt({ onSave }) {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const buildPrompt = (basePrompt) => {
+    return `${basePrompt.trim()}
+
+Return the recipe in structured JSON format with these fields:
+- name
+- srm
+- style
+- abv
+- og
+- fg
+- ingredients (as an array of strings or objects with name + quantity)
+- instructions (as an array of steps)`;
+  };
+
+  const unwrapRecipe = (data) => {
+    if (data.recipe?.recipe) return data.recipe.recipe;
+    if (data.recipe) return data.recipe;
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,16 +41,18 @@ export default function GptPrompt({ onSave }) {
       const res = await fetch(`${apiBase}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: buildPrompt(prompt) }),
       });
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
 
-      if (data.recipe) {
-        setResponse(data.recipe);
+      console.log('[GPT Response]', data);
+      const recipe = unwrapRecipe(data);
+      if (recipe) {
+        setResponse(recipe);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid recipe format');
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -42,8 +64,7 @@ export default function GptPrompt({ onSave }) {
         og: '',
         fg: '',
         ingredients: [],
-        instructions:
-          '⚠️ Failed to generate a recipe. Please check your internet connection and try again.',
+        instructions: '⚠️ Failed to generate a recipe. Please try again.',
       });
     } finally {
       setLoading(false);
@@ -55,24 +76,27 @@ export default function GptPrompt({ onSave }) {
     setResponse(null);
 
     try {
-      const prompt = `Based on these saved recipes:\n${savedRecipes
+      const basePrompt = `Based on these saved recipes:\n${savedRecipes
         .map((r) => `• ${r.name} (${r.style}, ABV ${r.abv})`)
-        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s tastes. Include style, ABV, OG, FG, ingredients, and instructions.`;
+        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s preferences.`;
+      const fullPrompt = buildPrompt(basePrompt);
 
       const apiBase = import.meta.env.VITE_API_BASE_URL || '';
       const res = await fetch(`${apiBase}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: fullPrompt }),
       });
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
 
-      if (data.recipe) {
-        setResponse(data.recipe);
+      console.log('[GPT Response from SuggestFromSaved]', data);
+      const recipe = unwrapRecipe(data);
+      if (recipe) {
+        setResponse(recipe);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid recipe format');
       }
     } catch (err) {
       console.error('Suggest fetch error:', err);
@@ -84,8 +108,7 @@ export default function GptPrompt({ onSave }) {
         og: '',
         fg: '',
         ingredients: [],
-        instructions:
-          '⚠️ Failed to generate a suggestion. Please try again later.',
+        instructions: '⚠️ Failed to generate a suggestion. Please try again later.',
       });
     } finally {
       setLoading(false);
@@ -93,32 +116,40 @@ export default function GptPrompt({ onSave }) {
   };
 
   const getIngredientList = () => {
-    if (!response?.ingredients) return [];
-    if (typeof response.ingredients === 'string') {
-      return response.ingredients
+    const ing = response?.ingredients;
+
+    if (Array.isArray(ing) && ing.every(i => typeof i === 'object' && i.name)) {
+      return ing.map(i =>
+        `${i.quantity ? `${i.quantity} ` : ''}${i.name}`.trim()
+      );
+    }
+
+    if (Array.isArray(ing)) {
+      return ing.map(i => typeof i === 'string' ? i.trim() : '').filter(Boolean);
+    }
+
+    if (typeof ing === 'string') {
+      return ing
         .split(/\r?\n/)
-        .map((i) => i.trim())
+        .map(i => i.trim())
         .filter(Boolean);
     }
-    if (Array.isArray(response.ingredients)) {
-      return response.ingredients
-        .map((i) => (typeof i === 'string' ? i.trim() : ''))
-        .filter(Boolean);
-    }
+
     return [];
   };
 
   const extractMashTemp = (text) => {
-    const match = text?.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
+    const match = typeof text === 'string' && text.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
     return match ? `${match[1]}°F` : null;
   };
 
-  const getInstructionSteps = (text) => {
-    if (!text) return [];
-    const byLine = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const getInstructionSteps = (instructions) => {
+    if (Array.isArray(instructions)) return instructions;
+    if (!instructions || typeof instructions !== 'string') return [];
+    const byLine = instructions.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
     return byLine.length > 1
       ? byLine
-      : text.split(/(?<=\.)\s+(?=\S)/).map((s) => s.trim()).filter(Boolean);
+      : instructions.split(/(?<=\.)\s+(?=\S)/).map(s => s.trim()).filter(Boolean);
   };
 
   return (
@@ -161,11 +192,9 @@ export default function GptPrompt({ onSave }) {
               : 'bg-neutral-900 border border-neutral-700'
           }`}
         >
-          <h3
-            className={`text-2xl font-bold mb-1 ${
-              response.name === 'Error' ? 'text-red-300' : 'text-amber-400'
-            }`}
-          >
+          <h3 className={`text-2xl font-bold mb-1 ${
+            response.name === 'Error' ? 'text-red-300' : 'text-amber-400'
+          }`}>
             {response.name}
           </h3>
           <p className="text-xs text-gray-400 mb-1">SRM {response.srm}</p>

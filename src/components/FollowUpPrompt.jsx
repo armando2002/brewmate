@@ -19,12 +19,19 @@ export default function FollowUpPrompt({ contextRecipe }) {
       const res = await fetch(`${apiBase}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: contextualPrompt }),
+        body: JSON.stringify({ prompt: contextualPrompt }), // ✅ wrapped in JSON object
       });
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
-      const answer = data.recipe?.instructions || 'Sorry, no response.';
+
+      // Accept plain response or object format
+      const answer =
+        data.recipe?.instructions ||
+        data.recipe?.answer ||
+        data.instructions ||
+        data.answer ||
+        'Sorry, no response.';
 
       setQaList((prev) => [...prev, { question, answer }]);
       setQuestion('');
@@ -59,7 +66,7 @@ export default function FollowUpPrompt({ contextRecipe }) {
         {qaList.map((qa, idx) => (
           <div key={idx} className="bg-neutral-900 border border-neutral-700 p-4 rounded-xl">
             <p className="text-sm text-gray-300 mb-1"><strong>Q:</strong> {qa.question}</p>
-            <p className="text-sm text-gray-400"><strong>A:</strong> {qa.answer}</p>
+            <p className="text-sm text-gray-400 whitespace-pre-line"><strong>A:</strong> {qa.answer}</p>
           </div>
         ))}
       </div>

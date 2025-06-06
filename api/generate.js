@@ -16,7 +16,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt } = req.body;
+    const prompt = typeof req.body === 'string'
+  ? req.body
+  : req.body.prompt;
+
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
