@@ -39,7 +39,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="bg-neutral-950 shadow-lg px-4 py-2 flex items-center justify-between gap-4 flex-wrap">
+      <header className="bg-neutral-950 shadow-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between items-center gap-4 text-center">
         <img
           src="/brewmate-logo-transparent-cleaned.png"
           alt="BrewMate Logo"
@@ -47,7 +47,7 @@ export default function Home() {
         />
 
         {user ? (
-          <div className="text-right flex flex-col sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 items-center text-center">
             <p className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
               👋 Welcome, {user.displayName}
             </p>
@@ -59,7 +59,7 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          <div className="text-right">
+          <div className="flex flex-col items-center text-center">
             <p className="text-sm text-gray-400">
               Sign in to save and manage your custom recipes
             </p>
@@ -74,7 +74,6 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 pt-4 pb-10 sm:pt-6 sm:pb-12">
-        {/* 💬 GPT Prompt Header */}
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-semibold mb-2">
             Brew with <span className="text-amber-400">BrewMate AI</span>
@@ -84,12 +83,10 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 💬 GPT Prompt Input */}
         <div className="mb-4">
           <GptPrompt onSave={handleRecipeSaved} />
         </div>
 
-        {/* 🔁 Always show sample recipes */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-3 text-center">
             {user ? 'Popular Recipes' : 'Sample Recipes'}
@@ -109,7 +106,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 💾 Saved Recipes */}
         {user && <SavedRecipes ref={savedRef} user={user} />}
       </main>
     </div>
