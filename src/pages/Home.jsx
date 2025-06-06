@@ -7,10 +7,12 @@ import RecipeCard from '../components/RecipeCard';
 import SaveRecipeButton from '../components/SaveRecipeButton';
 import GptPrompt from '../components/GptPrompt';
 import SavedRecipes from '../components/SavedRecipes';
+import SuggestFromSaved from '../components/SuggestFromSaved';
 
 export default function Home() {
   const [user, setUser] = useState(undefined);
   const savedRef = useRef(null);
+  const promptRef = useRef(null); // ⬅️ Add GPT ref
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +29,12 @@ export default function Home() {
 
   const handleRecipeSaved = () => {
     savedRef.current?.refetch();
+  };
+
+  const handleSuggestFromSaved = (prompt) => {
+    if (promptRef.current?.submitPrompt) {
+      promptRef.current.submitPrompt(prompt);
+    }
   };
 
   if (user === undefined) {
@@ -84,8 +92,14 @@ export default function Home() {
         </div>
 
         <div className="mb-4">
-          <GptPrompt onSave={handleRecipeSaved} />
+          <GptPrompt ref={promptRef} onSave={handleRecipeSaved} />
         </div>
+
+        {user && (
+          <div className="mb-8">
+            <SuggestFromSaved onSuggestFromSaved={handleSuggestFromSaved} />
+          </div>
+        )}
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-3 text-center">

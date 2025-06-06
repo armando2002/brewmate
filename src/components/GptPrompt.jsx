@@ -1,10 +1,9 @@
 // src/components/GptPrompt.jsx
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import SaveRecipeButton from './SaveRecipeButton';
-import SuggestFromSaved from './SuggestFromSaved';
 import FollowUpPrompt from './FollowUpPrompt';
 
-export default function GptPrompt({ onSave }) {
+const GptPrompt = forwardRef(({ onSave }, ref) => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,10 +23,8 @@ Return the recipe in structured format with the following fields:
 - instructions (numbered list with steps)`;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-
+  const submitPrompt = async (customPrompt) => {
+    if (typeof customPrompt !== 'string' || !customPrompt.trim()) return;
     setLoading(true);
     setResponse(null);
 
@@ -36,57 +33,11 @@ Return the recipe in structured format with the following fields:
       const res = await fetch(`${apiBase}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildPrompt(prompt) }),
+        body: JSON.stringify({ prompt: buildPrompt(customPrompt) }),
       });
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
-      console.log('[GPT Response]', data);
-
-      if (data.recipe) {
-        setResponse(data.recipe);
-      } else {
-        throw new Error('Invalid response format');
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setResponse({
-        name: 'Error',
-        srm: '',
-        style: '',
-        abv: '',
-        og: '',
-        fg: '',
-        ingredients: [],
-        instructions:
-          '⚠️ Failed to generate a recipe. Please check your internet connection and try again.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSuggestFromSaved = async (savedRecipes) => {
-    setLoading(true);
-    setResponse(null);
-
-    try {
-      const basePrompt = `Based on these saved recipes:\n${savedRecipes
-        .map((r) => `• ${r.name} (${r.style}, ABV ${r.abv})`)
-        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s tastes.`;
-      const fullPrompt = buildPrompt(basePrompt);
-
-      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-      const res = await fetch(`${apiBase}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: fullPrompt }),
-      });
-
-      if (!res.ok) throw new Error(`API Error ${res.status}`);
-      const data = await res.json();
-      console.log('[GPT Response from SuggestFromSaved]', data);
-
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -103,12 +54,21 @@ Return the recipe in structured format with the following fields:
         fg: '',
         ingredients: [],
         instructions:
-          '⚠️ Failed to generate a suggestion. Please try again later.',
+          '⚠️ Failed to generate a recipe. Please check your internet connection and try again.',
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitPrompt(prompt);
+  };
+
+  useImperativeHandle(ref, () => ({
+    submitPrompt,
+  }));
 
   const getIngredientList = () => {
     const ing = response?.ingredients;
@@ -154,23 +114,21 @@ Return the recipe in structured format with the following fields:
   };
 
   const getInstructionSteps = (text) => {
-  if (!text) return [];
-  if (Array.isArray(text)) return text;
+    if (!text) return [];
+    if (Array.isArray(text)) return text;
 
-  // Split by newlines or sentence breaks
-  const rawSteps = text.includes('\n')
-    ? text.split(/\r?\n/)
-    : text.split(/(?<=\.)\s+(?=\S)/);
+    const rawSteps = text.includes('\n')
+      ? text.split(/\r?\n/)
+      : text.split(/(?<=\.)\s+(?=\S)/);
 
-  return rawSteps
-    .map((line) =>
-      line
-        .replace(/^\[\d+\]\s*|\d+\.\s*/g, '') // remove "[1]" or "1." at start
-        .trim()
-    )
-    .filter(Boolean);
-};
-
+    return rawSteps
+      .map((line) =>
+        line
+          .replace(/^\[\d+\]\s*|\d+\.\s*/g, '')
+          .trim()
+      )
+      .filter(Boolean);
+  };
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
@@ -200,10 +158,6 @@ Return the recipe in structured format with the following fields:
         </button>
       </form>
 
-      <div className="mb-10 text-center">
-        <SuggestFromSaved onSuggestFromSaved={handleSuggestFromSaved} />
-      </div>
-
       {response && (
         <div
           className={`p-6 sm:p-8 rounded-2xl shadow-xl animate-fade-in ${
@@ -214,9 +168,7 @@ Return the recipe in structured format with the following fields:
         >
           <h3 className={`text-2xl font-bold mb-1 ${
             response.name === 'Error' ? 'text-red-300' : 'text-amber-400'
-          }`}>
-            {response.name}
-          </h3>
+          }`}>{response.name}</h3>
           <p className="text-xs text-gray-400 mb-1">SRM {response.srm}</p>
           <p className="text-sm text-gray-300 mb-2">{response.style}</p>
           <p className="text-sm text-gray-300 mb-2">
@@ -272,4 +224,6 @@ Return the recipe in structured format with the following fields:
       )}
     </section>
   );
-}
+});
+
+export default GptPrompt;

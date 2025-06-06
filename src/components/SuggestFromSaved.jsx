@@ -31,10 +31,15 @@ export default function SuggestFromSaved({ onSuggestFromSaved }) {
   }, []);
 
   const handleSuggest = async () => {
-    if (!saved.length || !onSuggestFromSaved) return;
+    if (!saved.length || !onSuggestFromSaved || suggesting) return;
     setSuggesting(true);
+
     try {
-      await onSuggestFromSaved(saved);
+      const prompt = `Based on these saved recipes:\n${saved
+        .map((r) => `• ${r.name} (${r.style}, ABV ${r.abv})`)
+        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s tastes.`;
+
+      await onSuggestFromSaved(prompt);
     } catch (err) {
       console.error('🚨 Suggestion failed:', err);
     } finally {
