@@ -12,21 +12,16 @@ export default function GptPrompt({ onSave }) {
   const buildPrompt = (basePrompt) => {
     return `${basePrompt.trim()}
 
-Return the recipe in structured JSON format with these fields:
+Return the recipe in structured format with the following fields:
 - name
 - srm
 - style
 - abv
 - og
 - fg
-- ingredients (as an array of strings or objects with name + quantity)
-- instructions (as an array of steps)`;
-  };
-
-  const unwrapRecipe = (data) => {
-    if (data.recipe?.recipe) return data.recipe.recipe;
-    if (data.recipe) return data.recipe;
-    return null;
+- ibu (estimated IBU as a number or short text)
+- ingredients (bulleted list or array of { name, quantity })
+- instructions (numbered list with steps)`;
   };
 
   const handleSubmit = async (e) => {
@@ -46,13 +41,12 @@ Return the recipe in structured JSON format with these fields:
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
-
       console.log('[GPT Response]', data);
-      const recipe = unwrapRecipe(data);
-      if (recipe) {
-        setResponse(recipe);
+
+      if (data.recipe) {
+        setResponse(data.recipe);
       } else {
-        throw new Error('Invalid recipe format');
+        throw new Error('Invalid response format');
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -64,7 +58,8 @@ Return the recipe in structured JSON format with these fields:
         og: '',
         fg: '',
         ingredients: [],
-        instructions: '⚠️ Failed to generate a recipe. Please try again.',
+        instructions:
+          '⚠️ Failed to generate a recipe. Please check your internet connection and try again.',
       });
     } finally {
       setLoading(false);
@@ -78,7 +73,7 @@ Return the recipe in structured JSON format with these fields:
     try {
       const basePrompt = `Based on these saved recipes:\n${savedRecipes
         .map((r) => `• ${r.name} (${r.style}, ABV ${r.abv})`)
-        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s preferences.`;
+        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s tastes.`;
       const fullPrompt = buildPrompt(basePrompt);
 
       const apiBase = import.meta.env.VITE_API_BASE_URL || '';
@@ -90,13 +85,12 @@ Return the recipe in structured JSON format with these fields:
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
       const data = await res.json();
-
       console.log('[GPT Response from SuggestFromSaved]', data);
-      const recipe = unwrapRecipe(data);
-      if (recipe) {
-        setResponse(recipe);
+
+      if (data.recipe) {
+        setResponse(data.recipe);
       } else {
-        throw new Error('Invalid recipe format');
+        throw new Error('Invalid response format');
       }
     } catch (err) {
       console.error('Suggest fetch error:', err);
@@ -108,7 +102,8 @@ Return the recipe in structured JSON format with these fields:
         og: '',
         fg: '',
         ingredients: [],
-        instructions: '⚠️ Failed to generate a suggestion. Please try again later.',
+        instructions:
+          '⚠️ Failed to generate a suggestion. Please try again later.',
       });
     } finally {
       setLoading(false);
@@ -125,7 +120,9 @@ Return the recipe in structured JSON format with these fields:
     }
 
     if (Array.isArray(ing)) {
-      return ing.map(i => typeof i === 'string' ? i.trim() : '').filter(Boolean);
+      return ing.map(i =>
+        typeof i === 'string' ? i.trim() : ''
+      ).filter(Boolean);
     }
 
     if (typeof ing === 'string') {
@@ -135,22 +132,45 @@ Return the recipe in structured JSON format with these fields:
         .filter(Boolean);
     }
 
+    if (typeof response?.instructions === 'string') {
+      const matchBlock = response.instructions.match(
+        /ingredients\s*[:\-]?\s*((?:.*\n?)+?)\n\s*(instructions|mash|boil|ferment|cool|add|transfer)/i
+      );
+      if (matchBlock) {
+        return matchBlock[1]
+          .split(/\r?\n|•|-|\*/i)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 4);
+      }
+    }
+
     return [];
   };
 
   const extractMashTemp = (text) => {
-    const match = typeof text === 'string' && text.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
+    if (typeof text !== 'string') return null;
+    const match = text.match(/mash (?:at|to) (\d{2,3})[°º]?[FfCc]/i);
     return match ? `${match[1]}°F` : null;
   };
 
-  const getInstructionSteps = (instructions) => {
-    if (Array.isArray(instructions)) return instructions;
-    if (!instructions || typeof instructions !== 'string') return [];
-    const byLine = instructions.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-    return byLine.length > 1
-      ? byLine
-      : instructions.split(/(?<=\.)\s+(?=\S)/).map(s => s.trim()).filter(Boolean);
-  };
+  const getInstructionSteps = (text) => {
+  if (!text) return [];
+  if (Array.isArray(text)) return text;
+
+  // Split by newlines or sentence breaks
+  const rawSteps = text.includes('\n')
+    ? text.split(/\r?\n/)
+    : text.split(/(?<=\.)\s+(?=\S)/);
+
+  return rawSteps
+    .map((line) =>
+      line
+        .replace(/^\[\d+\]\s*|\d+\.\s*/g, '') // remove "[1]" or "1." at start
+        .trim()
+    )
+    .filter(Boolean);
+};
+
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
@@ -181,7 +201,7 @@ Return the recipe in structured JSON format with these fields:
       </form>
 
       <div className="mb-10 text-center">
-        <SuggestFromSaved onSuggest={handleSuggestFromSaved} />
+        <SuggestFromSaved onSuggestFromSaved={handleSuggestFromSaved} />
       </div>
 
       {response && (
@@ -199,11 +219,16 @@ Return the recipe in structured JSON format with these fields:
           </h3>
           <p className="text-xs text-gray-400 mb-1">SRM {response.srm}</p>
           <p className="text-sm text-gray-300 mb-2">{response.style}</p>
-          <p className="text-sm text-gray-300 mb-4">
+          <p className="text-sm text-gray-300 mb-2">
             <strong>ABV:</strong> {response.abv} &nbsp;•&nbsp;
             <strong>OG:</strong> {response.og} &nbsp;•&nbsp;
             <strong>FG:</strong> {response.fg}
           </p>
+          {response.ibu && (
+            <p className="text-sm text-gray-300 mb-4">
+              <strong>IBU:</strong> {response.ibu}
+            </p>
+          )}
 
           {getIngredientList().length > 0 && (
             <>

@@ -1,7 +1,6 @@
 // src/components/SavedRecipes.jsx
 import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { getFirestore, collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import fallbackRecipes from '../data/recipes.json';
 import RecipeCard from './RecipeCard';
@@ -37,7 +36,6 @@ const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
     loadRecipes();
   }, [user, loadRecipes]);
 
-  // Allow parent to trigger a refresh
   useImperativeHandle(ref, () => ({
     refetch: loadRecipes
   }));
