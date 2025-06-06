@@ -1,6 +1,7 @@
 // src/components/GptPrompt.jsx
 import { useState } from 'react';
 import SaveRecipeButton from './SaveRecipeButton';
+import SuggestFromSaved from './SuggestFromSaved';
 
 export default function GptPrompt({ onSave }) {
   const [prompt, setPrompt] = useState('');
@@ -48,6 +49,48 @@ export default function GptPrompt({ onSave }) {
     }
   };
 
+  const handleSuggestFromSaved = async (savedRecipes) => {
+    setLoading(true);
+    setResponse(null);
+
+    try {
+      const prompt = `Based on these saved recipes:\n${savedRecipes
+        .map((r) => `• ${r.name} (${r.style}, ABV ${r.abv})`)
+        .join('\n')}\nSuggest a new homebrew recipe that matches the user’s tastes. Include style, ABV, OG, FG, ingredients, and instructions.`;
+
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBase}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) throw new Error(`API Error ${res.status}`);
+
+      const data = await res.json();
+      if (data.recipe) {
+        setResponse(data.recipe);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      console.error('Suggest fetch error:', err);
+      setResponse({
+        name: 'Error',
+        srm: '',
+        style: '',
+        abv: '',
+        og: '',
+        fg: '',
+        ingredients: [],
+        instructions:
+          '⚠️ Failed to generate a suggestion. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getIngredientList = () => {
     if (!response?.ingredients) return [];
     if (typeof response.ingredients === 'string') {
@@ -66,6 +109,8 @@ export default function GptPrompt({ onSave }) {
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
+      <SuggestFromSaved onSuggest={handleSuggestFromSaved} />
+
       {loading && (
         <div className="flex justify-center my-8">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent"></div>
@@ -128,10 +173,7 @@ export default function GptPrompt({ onSave }) {
           </p>
 
           {response.name !== 'Error' && (
-            <SaveRecipeButton
-              recipe={response}
-              onSave={onSave}
-            />
+            <SaveRecipeButton recipe={response} onSave={onSave} />
           )}
         </div>
       )}
