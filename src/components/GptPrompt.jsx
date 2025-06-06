@@ -24,8 +24,8 @@ export default function GptPrompt({ onSave }) {
       });
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
-
       const data = await res.json();
+
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -66,8 +66,8 @@ export default function GptPrompt({ onSave }) {
       });
 
       if (!res.ok) throw new Error(`API Error ${res.status}`);
-
       const data = await res.json();
+
       if (data.recipe) {
         setResponse(data.recipe);
       } else {
@@ -109,8 +109,6 @@ export default function GptPrompt({ onSave }) {
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
-      <SuggestFromSaved onSuggest={handleSuggestFromSaved} />
-
       {loading && (
         <div className="flex justify-center my-8">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent"></div>
@@ -119,7 +117,7 @@ export default function GptPrompt({ onSave }) {
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col sm:flex-row gap-3 items-stretch mb-10"
+        className="flex flex-col sm:flex-row gap-3 items-stretch mb-6"
       >
         <input
           type="text"
@@ -136,6 +134,11 @@ export default function GptPrompt({ onSave }) {
           {loading ? 'Generating…' : 'Generate'}
         </button>
       </form>
+
+      {/* ✅ Moved below the prompt input */}
+      <div className="mb-10 text-center">
+        <SuggestFromSaved onSuggest={handleSuggestFromSaved} />
+      </div>
 
       {response && (
         <div
