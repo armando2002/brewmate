@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import fallbackRecipes from '../data/recipes.json';
 import RecipeCard from './RecipeCard';
 
-const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
+const SavedRecipes = forwardRef(function SavedRecipes({ user, onRecipeCountChange }, ref) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,6 +14,7 @@ const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
     try {
       if (!user) {
         setRecipes(fallbackRecipes);
+        if (onRecipeCountChange) onRecipeCountChange(false);
       } else {
         const db = getFirestore();
         const snapshot = await getDocs(collection(db, 'users', user.uid, 'recipes'));
@@ -23,14 +24,16 @@ const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
         }));
         const valid = saved.filter(r => r && r.name);
         setRecipes(valid);
+        if (onRecipeCountChange) onRecipeCountChange(valid.length > 0);
       }
     } catch (err) {
       console.error('🔥 Failed to load recipes:', err);
       setRecipes([]);
+      if (onRecipeCountChange) onRecipeCountChange(false);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, onRecipeCountChange]);
 
   useEffect(() => {
     loadRecipes();
@@ -47,7 +50,10 @@ const SavedRecipes = forwardRef(function SavedRecipes({ user }, ref) {
       const db = getFirestore();
       await deleteDoc(doc(db, 'users', user.uid, 'recipes', idToDelete));
 
-      setRecipes(prev => prev.filter(r => r.id !== idToDelete));
+      const updated = recipes.filter(r => r.id !== idToDelete);
+      setRecipes(updated);
+      if (onRecipeCountChange) onRecipeCountChange(updated.length > 0);
+
       toast.success('🗑️ Recipe deleted!');
     } catch (err) {
       console.error('❌ Failed to delete recipe:', err);

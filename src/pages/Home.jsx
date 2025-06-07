@@ -11,6 +11,7 @@ import SuggestFromSaved from '../components/SuggestFromSaved';
 
 export default function Home() {
   const [user, setUser] = useState(undefined);
+  const [hasSavedRecipes, setHasSavedRecipes] = useState(false);
   const savedRef = useRef(null);
   const promptRef = useRef(null);
   const navigate = useNavigate();
@@ -92,26 +93,34 @@ export default function Home() {
           </div>
         )}
 
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-3 text-center">
-            {user ? 'Popular Recipes' : 'Sample Recipes'}
-          </h2>
-          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((recipe) => (
-              <div key={recipe.name}>
-                <RecipeCard recipe={recipe} />
-                {user && (
-                  <SaveRecipeButton
-                    recipe={recipe}
-                    onSave={handleRecipeSaved}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {(!user || !hasSavedRecipes) && (
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-3 text-center">
+              {user ? 'Popular Recipes' : 'Sample Recipes'}
+            </h2>
+            <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {recipes.map((recipe) => (
+                <div key={recipe.name}>
+                  <RecipeCard recipe={recipe} />
+                  {user && (
+                    <SaveRecipeButton
+                      recipe={recipe}
+                      onSave={handleRecipeSaved}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {user && <SavedRecipes ref={savedRef} user={user} />}
+        {user && (
+          <SavedRecipes
+            ref={savedRef}
+            user={user}
+            onRecipeCountChange={(count) => setHasSavedRecipes(count > 0)}
+          />
+        )}
       </main>
     </div>
   );
