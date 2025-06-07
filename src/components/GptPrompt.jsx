@@ -124,7 +124,7 @@ Return the recipe in structured format with the following fields:
     return rawSteps
       .map((line) =>
         line
-          .replace(/^\[\d+\]\s*|\d+\.\s*/g, '')
+          .replace(/^(\d+[\.\)]\s*)+/, '') // 🔧 removes leading 1. or 2) or 3.3.
           .trim()
       )
       .filter(Boolean);
@@ -150,7 +150,7 @@ Return the recipe in structured format with the following fields:
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col sm:flex-row gap-3 items-stretch mb-6 mt-6"
+        className="flex flex-col sm:flex-row gap-3 items-stretch mb-6"
       >
         <input
           type="text"
