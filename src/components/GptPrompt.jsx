@@ -132,6 +132,13 @@ Return the recipe in structured format with the following fields:
 
   return (
     <section className="mt-8 mb-6 max-w-3xl mx-auto px-4">
+      <h2 className="text-2xl font-bold text-center">
+        Brew with <span className="text-yellow-500">BrewMate AI</span>
+      </h2>
+      <p className="text-center text-gray-400 mt-2 mb-6">
+        Describe your beer idea below and BrewMate will craft a custom recipe for you. This may take up to 15 seconds as our AI brewmaster thinks through your ingredients.
+      </p>
+
       {loading && (
         <div className="flex justify-center my-8">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent"></div>
