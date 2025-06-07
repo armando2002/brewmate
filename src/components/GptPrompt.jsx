@@ -135,8 +135,11 @@ Return the recipe in structured format with the following fields:
       <h2 className="text-2xl font-bold text-center">
         Brew with <span className="text-yellow-500">BrewMate AI</span>
       </h2>
-      <p className="text-center text-gray-400 mt-2 mb-6">
+      <p className="text-center text-gray-400 mt-2 max-w-2xl mx-auto">
         Describe your beer idea below and BrewMate will craft a custom recipe for you. This may take up to 15 seconds as our AI brewmaster thinks through your ingredients.
+      </p>
+      <p className="text-center text-gray-400 mt-2 max-w-2xl mx-auto">
+        Once you've saved a recipe or two, a new option will appear: <strong className="text-white">“Suggest Based on My Recipes.”</strong> Sign in to start saving and let BrewMate recommend your next brew!
       </p>
 
       {loading && (
