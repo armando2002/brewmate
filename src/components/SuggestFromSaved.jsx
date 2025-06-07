@@ -1,34 +1,38 @@
 // src/components/SuggestFromSaved.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-export default function SuggestFromSaved({ onSuggestFromSaved }) {
+const SuggestFromSaved = forwardRef(function SuggestFromSaved({ onSuggestFromSaved }, ref) {
   const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(true);
   const [suggesting, setSuggesting] = useState(false);
 
+  const fetchSaved = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const db = getFirestore();
+      const snapshot = await getDocs(collection(db, 'users', user.uid, 'recipes'));
+      const recipes = snapshot.docs.map(doc => doc.data());
+      setSaved(recipes);
+    } catch (err) {
+      console.error('🔥 Failed to fetch saved recipes:', err);
+      setSaved([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSaved = async () => {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        const db = getFirestore();
-        const snapshot = await getDocs(collection(db, 'users', user.uid, 'recipes'));
-        const recipes = snapshot.docs.map(doc => doc.data());
-        setSaved(recipes);
-      } catch (err) {
-        console.error('🔥 Failed to fetch saved recipes:', err);
-        setSaved([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSaved();
   }, []);
+
+  useImperativeHandle(ref, () => ({
+    refetch: fetchSaved,
+  }));
 
   const handleSuggest = async () => {
     if (!saved.length || !onSuggestFromSaved || suggesting) return;
@@ -60,4 +64,6 @@ export default function SuggestFromSaved({ onSuggestFromSaved }) {
       </button>
     </div>
   );
-}
+});
+
+export default SuggestFromSaved;
