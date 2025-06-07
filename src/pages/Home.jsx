@@ -12,7 +12,7 @@ import SuggestFromSaved from '../components/SuggestFromSaved';
 export default function Home() {
   const [user, setUser] = useState(undefined);
   const savedRef = useRef(null);
-  const promptRef = useRef(null); // ⬅️ Add GPT ref
+  const promptRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -82,15 +82,6 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 pt-4 pb-10 sm:pt-6 sm:pb-12">
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-semibold mb-2">
-            Brew with <span className="text-amber-400">BrewMate AI</span>
-          </h2>
-          <p className="text-sm text-gray-400 max-w-xl mx-auto">
-            Describe your beer idea below and BrewMate will craft a custom recipe for you.
-          </p>
-        </div>
-
         <div className="mb-4">
           <GptPrompt ref={promptRef} onSave={handleRecipeSaved} />
         </div>
