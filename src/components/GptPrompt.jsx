@@ -150,7 +150,7 @@ Return the recipe in structured format with the following fields:
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col sm:flex-row gap-3 items-stretch mb-6"
+        className="flex flex-col sm:flex-row gap-3 items-stretch mb-6 mt-6"
       >
         <input
           type="text"
